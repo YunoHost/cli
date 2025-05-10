@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import requests
 import logging
+
+import requests
 
 from .config import Config
 

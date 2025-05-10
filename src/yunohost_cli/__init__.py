@@ -4,7 +4,6 @@ import argparse
 import json
 import logging
 import sys
-from typing import Any
 
 import yaml
 
@@ -21,25 +20,26 @@ def set_logging_level_from_int(value: int):
     logging.getLogger().setLevel(level)
 
 
-def add_args_from_actionsmap(subparsers, actionsmap: dict[Any, Any]) -> None:
-    for category, category_descr in actionsmap.items():
-        if category.startswith("_"):
-            continue
-        catpars = subparsers.add_parser(category, help=category_descr["category_help"])
-        catsubpars = catpars.add_subparsers(dest="action", required=True)
-        for action, action_descr in category_descr.get("actions", {}).items():
-            argpars = catsubpars.add_parser(action, help=action_descr["action_help"])
-            for argument, arg_descr in action_descr.get("arguments", {}).items():
-                full_arg = arg_descr.get("full")
-                if isinstance(argument, int) and argument < 0:
-                    argument = f"-{-argument}"
-                args = [argument, full_arg] if full_arg else [argument]
-                argpars.add_argument(
-                    *args,
-                    help=arg_descr.get("help"),
-                    action=arg_descr.get("action"),
-                    # nargs=arg_descr.get("nargs")
-                )
+def cli_auth(args: argparse.Namespace, config: Config, server: Server) -> None:
+    if args.server_name in config.config.get("servers", {}):
+        logging.error(f"Server {args.server_name} already present in config!")
+        sys.exit(1)
+
+    config.server_add(args.server_name, args.host, args.login, args.password)
+    if server.login():
+        logging.info("Authentication successful")
+    else:
+        logging.error("Could not authenticate!")
+        config.server_remove(args.server_name)
+        sys.exit(1)
+
+
+def cli_test(args: argparse.Namespace, config: Config, server: Server) -> None:
+    if server.login():
+        logging.info("Authentication successful")
+    else:
+        logging.error("Could not authenticate!")
+        sys.exit(1)
 
 
 def main() -> None:
@@ -49,7 +49,9 @@ def main() -> None:
     mainsub = parser.add_subparsers(dest="category", required=True)
 
     actions = ActionsMap()
-    add_args_from_actionsmap(mainsub, actions.map)
+    actions.fill_parser(mainsub)
+
+    # add_args_from_actionsmap(mainsub, actions.map)
 
     cli = mainsub.add_parser("cli", help="CLI specific stuff")
     clisub = cli.add_subparsers(dest="action", required=True)
@@ -69,34 +71,20 @@ def main() -> None:
 
     if args.category == "cli":
         if args.action == "auth":
-            if args.server_name in config.config.get("servers", {}):
-                logging.error(f"Server {args.server_name} already present in config!")
-                sys.exit(1)
-
-            config.server_add(args.server_name, args.host, args.login, args.password)
-            if server.login():
-                logging.info("Authentication successful")
-            else:
-                logging.error("Could not authenticate!")
-                config.server_remove(args.server_name)
-                sys.exit(1)
-
+            cli_auth(args, config, server)
         if args.action == "test":
-            if server.login():
-                logging.info("Authentication successful")
-            else:
-                logging.error("Could not authenticate!")
-                sys.exit(1)
-
+            cli_test(args, config, server)
         return
 
-    action = actions.map[args.category]["actions"][args.action]
-    logging.debug(f"Running {action}")
-
-    uri = action["api"].split(" ")[1]
-
     server.login()
-    result = server.get(uri)
-    result.raise_for_status()
+    args.func(args, server)
 
-    print(yaml.dump(json.loads(result.text)))
+    # action = actions.map[args.category]["actions"][args.action]
+    # logging.debug(f"Running {action}")
+
+    # uri = action["api"].split(" ")[1]
+
+    # result = server.get(uri)
+    # result.raise_for_status()
+
+    # print(yaml.dump(json.loads(result.text)))
