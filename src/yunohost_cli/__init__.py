@@ -78,13 +78,3 @@ def main() -> None:
 
     server.login()
     args.func(args, server)
-
-    # action = actions.map[args.category]["actions"][args.action]
-    # logging.debug(f"Running {action}")
-
-    # uri = action["api"].split(" ")[1]
-
-    # result = server.get(uri)
-    # result.raise_for_status()
-
-    # print(yaml.dump(json.loads(result.text)))
