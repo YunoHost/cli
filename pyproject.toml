@@ -1,0 +1,31 @@
+[project]
+name = "yunohost-cli"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Félix Piédallu", email = "felix@piedallu.me" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "platformdirs>=4.3.8",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.3",
+    "toml>=0.10.2",
+]
+
+[project.scripts]
+yunohost-cli = "yunohost_cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "mypy",
+    "types-toml>=0.10.8.20240310",
+]
+
+[tool.mypy]
+follow_imports = "normal"

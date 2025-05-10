@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+
+import requests
+from .config import Config
+
+
+class Server():
+    def __init__(self, name: str):
+        self.name = name
+        self.session = requests.Session()
+
+    def login(self) -> bool:
+        server_config = Config().config["servers"][self.name]
+        data = {
+            "username": server_config["username"],
+            "password": server_config["password"],
+        }
+        result = self.post("/login", data=data)
+        return result.status_code == 200
+
+    def real_url(self, url: str) -> str:
+        base = Config().config["servers"][self.name]["hostname"]
+        api_path = "/yunohost/api/"
+        return "https://" + f"{base}{api_path}{url}".replace("//", "/")
+
+    def request(self, method, url, **kwargs) -> requests.Response:
+        return self.session.request(method, self.real_url(url), **kwargs)
+
+    def get(self, url, **kwargs) -> requests.Response:
+        return self.session.get(self.real_url(url), **kwargs)
+
+    def post(self, url, **kwargs) -> requests.Response:
+        return self.session.post(self.real_url(url), **kwargs)
