@@ -7,13 +7,11 @@ import toml
 
 from .utils import Singleton
 
-APP_NAME = "yunohost-cli"
-
 
 class Config(metaclass=Singleton):
     def __init__(self) -> None:
-        self.config_dir = Path(platformdirs.user_config_dir(APP_NAME))
-        self.config_path = self.config_dir / "config.toml"
+        self.config_dir = Path(platformdirs.user_config_dir("yunohost"))
+        self.config_path = self.config_dir / "cli.toml"
         self.config: dict = {"version": 1}
         self._init()
         self._read()
