@@ -10,3 +10,21 @@ The command line format is extracted from the `actionsmap.yml` that it can eithe
 find locally installed by the yunohost server, or fallback on its local copy.
 
 It saves its configuration at `~/.config/yunohost/cli.toml`.
+
+## Installation
+
+This tool is not yet published, on Pypi nor debian repos.
+
+## Usage
+
+It is for now installed as `yunohost-cli` and `ynh` to prevent conflicts with the
+existing `yunohost` command line.
+
+```
+uv run ynh --help
+
+# Login and save the creds
+uv run cli auth myserver.tld myusername mypassword
+
+uv run ynh user list
+```
