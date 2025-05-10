@@ -30,7 +30,8 @@ class Config(metaclass=Singleton):
 
     def server_remove(self, name: str) -> None:
         if name in self.config["servers"]:
-            del self.config["servers"]
+            del self.config["servers"][name]
+        self._save()
 
     def _init(self) -> None:
         self.config_dir.mkdir(parents=True, exist_ok=True)

@@ -69,6 +69,10 @@ def main() -> None:
 
     if args.category == "cli":
         if args.action == "auth":
+            if args.server_name in config.config.get("servers", {}):
+                logging.error(f"Server {args.server_name} already present in config!")
+                sys.exit(1)
+
             config.server_add(args.server_name, args.host, args.login, args.password)
             if server.login():
                 logging.info("Authentication successful")

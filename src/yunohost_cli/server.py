@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import requests
+import logging
 
 from .config import Config
 
@@ -16,8 +17,12 @@ class Server:
             "username": server_config["username"],
             "password": server_config["password"],
         }
-        result = self.post("/login", data=data)
-        return result.status_code == 200
+        try:
+            result = self.post("/login", data=data)
+            return result.status_code == 200
+        except requests.RequestException as err:
+            logging.error(err)
+            return False
 
     def real_url(self, url: str) -> str:
         base = Config().config["servers"][self.name]["hostname"]
