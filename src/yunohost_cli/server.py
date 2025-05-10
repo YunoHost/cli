@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+from typing import Any
 
 import requests
 
@@ -8,7 +9,7 @@ from .config import Config
 
 
 class Server:
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
         self.session = requests.Session()
 
@@ -30,11 +31,11 @@ class Server:
         api_path = "/yunohost/api/"
         return "https://" + f"{base}{api_path}{url}".replace("//", "/")
 
-    def request(self, method, url, **kwargs) -> requests.Response:
+    def request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
         return self.session.request(method, self.real_url(url), **kwargs)
 
-    def get(self, url, **kwargs) -> requests.Response:
+    def get(self, url: str, **kwargs: Any) -> requests.Response:
         return self.session.get(self.real_url(url), **kwargs)
 
-    def post(self, url, **kwargs) -> requests.Response:
+    def post(self, url: str, **kwargs: Any) -> requests.Response:
         return self.session.post(self.real_url(url), **kwargs)

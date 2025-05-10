@@ -4,12 +4,17 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import yaml
 
 from .config import Config
 from .server import Server
+
+if TYPE_CHECKING:
+    _SubparserType = argparse._SubParsersAction[argparse.ArgumentParser]
+else:
+    _SubparserType = Any
 
 
 def find_actionsmap() -> Path:
@@ -71,7 +76,7 @@ class MapAction:
             for name, config in config.get("arguments", {}).items()
         ]
 
-    def fill_parser(self, subparser: argparse._SubParsersAction) -> None:
+    def fill_parser(self, subparser: _SubparserType) -> None:
         if self.config.get("deprecated", False):
             return
         if self.no_help:
@@ -148,7 +153,7 @@ class MapCategory:
             for name, config in config.get("actions", {}).items()
         }
 
-    def fill_parser(self, subparser: argparse._SubParsersAction) -> None:
+    def fill_parser(self, subparser: _SubparserType) -> None:
         self.parser: argparse.ArgumentParser = subparser.add_parser(
             self.path[-1], help=self.help
         )
@@ -169,6 +174,6 @@ class ActionsMap:
             if not name.startswith("_")
         }
 
-    def fill_parser(self, subparser: argparse._SubParsersAction) -> None:
+    def fill_parser(self, subparser: _SubparserType) -> None:
         for category in self.categories.values():
             category.fill_parser(subparser)

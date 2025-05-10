@@ -14,7 +14,7 @@ from .server import Server
 __all__ = ["Config"]
 
 
-def set_logging_level_from_int(value: int):
+def set_logging_level_from_int(value: int) -> None:
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]
     level = levels[max(0, min(value, len(levels) - 1))]
     logging.getLogger().setLevel(level)
