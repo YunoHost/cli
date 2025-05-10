@@ -12,6 +12,7 @@ from .utils import Singleton
 class Config(metaclass=Singleton):
     def __init__(self) -> None:
         self.config_dir = Path(platformdirs.user_config_dir("yunohost"))
+        self.cache_dir = Path(platformdirs.user_cache_dir("yunohost"))
         self.config_path = self.config_dir / "cli.toml"
         self.config: dict[str, Any] = {"version": 1}
         self._init()
@@ -38,6 +39,7 @@ class Config(metaclass=Singleton):
 
     def _init(self) -> None:
         self.config_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
         if not self.config_path.exists():
             self._save()
 

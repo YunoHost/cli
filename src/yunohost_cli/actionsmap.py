@@ -102,7 +102,7 @@ class MapAction:
 
             replacestring = f"<{arg.varname}>"
             if isinstance(value, list):
-                valuestring = ";".join(value)
+                valuestring = "%20".join(value)
             else:
                 valuestring = str(value)
 

@@ -15,13 +15,22 @@ class Server:
 
     def login(self) -> bool:
         server_config = Config().config["servers"][self.name]
+        server_cache_file = Config().cache_dir / self.name
+        if server_cache_file.exists():
+            self.session.cookies["yunohost.admin"] = server_cache_file.read_text().strip()
+            return True
+
         data = {
             "username": server_config["username"],
             "password": server_config["password"],
         }
         try:
+            logging.info("Logging in...")
             result = self.post("/login", data=data)
-            return result.status_code == 200
+            if result.status_code != 200:
+                return False
+            server_cache_file.write_text(result.cookies["yunohost.admin"])
+            return True
         except requests.RequestException as err:
             logging.error(err)
             return False
