@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 yunohost-cli = "yunohost_cli:main"
+ynh = "yunohost_cli:main"
 
 [build-system]
 requires = ["hatchling"]
