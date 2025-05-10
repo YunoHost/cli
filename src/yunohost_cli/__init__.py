@@ -7,9 +7,9 @@ from .config import Config
 from .actionsmap import ActionsMap
 from .server import Server
 
+import yaml
 from typing import Any
-from operator import add
-
+import json
 
 __all__ = [
     "Config"
@@ -87,11 +87,12 @@ def main() -> None:
         return
 
     action = actions.map[args.category]["actions"][args.action]
-
-    print(action)
+    logging.debug(f"Running {action}")
 
     uri = action["api"].split(" ")[1]
 
     server.login()
     result = server.get(uri)
-    print(result.status_code, result.text)
+    result.raise_for_status()
+
+    print(yaml.dump(json.loads(result.text)))
