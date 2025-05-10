@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
+import json
 import logging
-from .config import Config
-from .actionsmap import ActionsMap
-from .server import Server
+import sys
+from typing import Any
 
 import yaml
-from typing import Any
-import json
 
-__all__ = [
-    "Config"
-]
+from .actionsmap import ActionsMap
+from .config import Config
+from .server import Server
+
+__all__ = ["Config"]
+
 
 def set_logging_level_from_int(value: int):
     levels = [logging.WARNING, logging.INFO, logging.DEBUG]

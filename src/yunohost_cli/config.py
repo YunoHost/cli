@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
-import toml
 from pathlib import Path
+
 import platformdirs
+import toml
 
 from .utils import Singleton
 
@@ -32,7 +33,6 @@ class Config(metaclass=Singleton):
     def server_remove(self, name: str) -> None:
         if name in self.config["servers"]:
             del self.config["servers"]
-
 
     def _init(self) -> None:
         self.config_dir.mkdir(parents=True, exist_ok=True)

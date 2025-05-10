@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import requests
+
 from .config import Config
 
 
-class Server():
+class Server:
     def __init__(self, name: str):
         self.name = name
         self.session = requests.Session()

@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
 
-import yaml
 from pathlib import Path
 
+import yaml
 
-class ActionsMap():
+
+def find_actionsmap() -> Path:
+    # First search for local server
+    local_server = Path("/usr/share/yunohost/actionsmap.yml")
+    fallback = Path(__file__).resolve().parent / "actionsmap.yml"
+
+    if local_server.exists():
+        return local_server
+    else:
+        return fallback
+
+
+class ActionsMap:
     def __init__(self) -> None:
-        map_path = Path(__file__).resolve().parent / "actionsmap.yml"
-        self.map = yaml.safe_load(map_path.open("r"))
+        self.map = yaml.safe_load(find_actionsmap().open("r"))
