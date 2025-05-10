@@ -7,13 +7,13 @@ import yaml
 
 def find_actionsmap() -> Path:
     # First search for local server
-    local_server = Path("/usr/share/yunohost/actionsmap.yml")
-    fallback = Path(__file__).resolve().parent / "actionsmap.yml"
+    server_copy = Path("/usr/share/yunohost/actionsmap.yml")
+    package_copy = Path(__file__).resolve().parent / "actionsmap.yml"
 
-    if local_server.exists():
-        return local_server
+    if server_copy.exists():
+        return server_copy
     else:
-        return fallback
+        return package_copy
 
 
 class ActionsMap:
