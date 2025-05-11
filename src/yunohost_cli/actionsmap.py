@@ -133,8 +133,10 @@ class MapAction:
         result = server.request(method, uri, params=params)
         result.raise_for_status()
 
-        import ryaml
-        print(ryaml.dumps(result.json()))
+        # import ryaml
+        # print(ryaml.dumps(result.json()))
+        from .prints import pretty_print_dict
+        pretty_print_dict(result.json())
 
 
 class MapCategory:
