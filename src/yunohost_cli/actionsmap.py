@@ -181,6 +181,7 @@ class ActionsMap:
         else:
             import yaml
             self.map = yaml.safe_load(find_actionsmap().open("r"))
+            map_cache.parent.mkdir(parents=True, exist_ok=True)
             json.dump(self.map, map_cache.open("w"), indent=0)
 
 
