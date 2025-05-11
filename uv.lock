@@ -185,18 +185,6 @@ wheels = [
 ]
 
 [[package]]
-name = "ryaml"
-version = "0.4.0"
-source = { registry = "https://pypi.org/simple" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/e3/61a059b05bb0a242fb76f3293f3c11c8803ca11bb3353c9a8a5fcd2faea3/ryaml-0.4.0-cp310-none-win_amd64.whl", hash = "sha256:3af7f9c8987acd72644487f8810e9b219e000e209ecdc10cfa3583567aaa45bd", size = 241834, upload_time = "2021-11-25T17:10:29.988Z" },
-    { url = "https://files.pythonhosted.org/packages/a3/66/e965c1ed625cdb650ba2c21f973f42487dba9e29715c8498f118d5a779f1/ryaml-0.4.0-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:67e676764110249ee0b2a021fb95ef29f7c5be5870ad71ae20d73574f94f909a", size = 362218, upload_time = "2021-11-25T17:10:31.282Z" },
-    { url = "https://files.pythonhosted.org/packages/25/11/2f55ee4a1e55ed5e6fdce0a7a221d601a8e4076d3ffbfa348bf0444d4745/ryaml-0.4.0-cp37-abi3-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:d93b76b605d6163abe1fd685196bebfe4c319915249154e22792f1f7d4946b5f", size = 709960, upload_time = "2021-11-25T17:10:32.621Z" },
-    { url = "https://files.pythonhosted.org/packages/45/59/fb2c8bc6a46f9b44dcb618a6f95e77685250e23f2cf1d29d67ed5c20cff8/ryaml-0.4.0-cp37-abi3-manylinux_2_24_x86_64.whl", hash = "sha256:a4e4d3cc4380d411d29f3efe2eca888d4fc2df735d7ebfa27fbdc65cf482f803", size = 1117562, upload_time = "2021-11-25T17:10:34.234Z" },
-    { url = "https://files.pythonhosted.org/packages/d7/71/cb00c181d90061379bf2948251def3905043b8571fc2df8c28ed0a49b131/ryaml-0.4.0-cp37-abi3-win_amd64.whl", hash = "sha256:0011f6f336852019333346689899810308d70cf6a983e62fc677950ce2f7fafc", size = 241785, upload_time = "2021-11-25T17:10:36.372Z" },
-]
-
-[[package]]
 name = "sniffio"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -288,7 +276,6 @@ dependencies = [
     { name = "httpx" },
     { name = "platformdirs" },
     { name = "pyyaml" },
-    { name = "ryaml" },
     { name = "toml" },
 ]
 
@@ -304,7 +291,6 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "platformdirs", specifier = ">=4.0" },
     { name = "pyyaml", specifier = ">=6.0" },
-    { name = "ryaml", specifier = ">=0.4.0" },
     { name = "toml", specifier = ">=0.10" },
 ]
 
