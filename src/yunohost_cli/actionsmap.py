@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
+import platformdirs
 import argparse
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-
-import yaml
+import json
 
 from .server import Server
 
@@ -164,13 +164,25 @@ class MapCategory:
 
 class ActionsMap:
     def __init__(self) -> None:
-        self.map = yaml.safe_load(find_actionsmap().open("r"))
+        self.cached_read()
 
         self.categories = {
             name: MapCategory([name], config)
             for name, config in self.map.items()
             if not name.startswith("_")
         }
+
+    def cached_read(self) -> None:
+        actionsmap = find_actionsmap()
+        map_cache = Path(platformdirs.user_cache_dir("yunohost")) / "actionsmap.json"
+
+        if map_cache.exists() and map_cache.stat().st_mtime > actionsmap.stat().st_mtime:
+            self.map = json.load(map_cache.open("r"))
+        else:
+            import yaml
+            self.map = yaml.safe_load(find_actionsmap().open("r"))
+            json.dump(self.map, map_cache.open("w"), indent=0)
+
 
     def fill_parser(self, subparser: _SubparserType) -> None:
         for category in self.categories.values():
