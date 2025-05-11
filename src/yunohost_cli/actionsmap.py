@@ -133,6 +133,7 @@ class MapAction:
         result = server.request(method, uri, params=params)
         result.raise_for_status()
 
+        import yaml
         print(yaml.dump(result.json(), allow_unicode=True))
 
 

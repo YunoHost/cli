@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-import requests
+import httpx
 
 from .config import Config
 
@@ -11,7 +11,7 @@ from .config import Config
 class Server:
     def __init__(self, name: str) -> None:
         self.name = name
-        self.session = requests.Session()
+        self.session = httpx.Client()
 
     def login(self) -> bool:
         server_config = Config().config["servers"][self.name]
@@ -31,7 +31,7 @@ class Server:
                 return False
             server_cache_file.write_text(result.cookies["yunohost.admin"])
             return True
-        except requests.RequestException as err:
+        except httpx.RequestError as err:
             logging.error(err)
             return False
 
@@ -40,11 +40,11 @@ class Server:
         api_path = "/yunohost/api/"
         return "https://" + f"{base}{api_path}{url}".replace("//", "/")
 
-    def request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
+    def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
         return self.session.request(method, self.real_url(url), **kwargs)
 
-    def get(self, url: str, **kwargs: Any) -> requests.Response:
+    def get(self, url: str, **kwargs: Any) -> httpx.Response:
         return self.session.get(self.real_url(url), **kwargs)
 
-    def post(self, url: str, **kwargs: Any) -> requests.Response:
+    def post(self, url: str, **kwargs: Any) -> httpx.Response:
         return self.session.post(self.real_url(url), **kwargs)
