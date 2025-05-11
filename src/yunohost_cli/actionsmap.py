@@ -7,8 +7,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 import json
 
-from .server import Server
-
 if TYPE_CHECKING:
     _SubparserType = argparse._SubParsersAction[argparse.ArgumentParser]
 else:
@@ -86,7 +84,7 @@ class MapAction:
             arg.fill_parser(parser)
         parser.set_defaults(func=self.run)
 
-    def run(self, args: argparse.Namespace, server: Server) -> None:
+    def run(self, args: argparse.Namespace) -> tuple[str, str, dict[str, str]]:
         logging.debug(f"Running '{' '.join(self.path)}' ({self.help})")
 
         uris = self.config["api"]
@@ -130,13 +128,7 @@ class MapAction:
                 uris = uris[0]
 
         method, uri = uris.split(" ")
-        result = server.request(method, uri, params=params)
-        result.raise_for_status()
-
-        # import ryaml
-        # print(ryaml.dumps(result.json()))
-        from .prints import pretty_print_dict
-        pretty_print_dict(result.json())
+        return method, uri, params
 
 
 class MapCategory:

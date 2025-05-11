@@ -41,8 +41,9 @@ def main() -> None:
     parser = argparse.ArgumentParser("ynh")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-s", "--server-name", type=str, default="default")
-    mainsub = parser.add_subparsers(dest="category", required=True)
+    parser.add_argument("-o", "--output-as", type=str, help="Output format", choices=["json", "plain", "yaml"], default="yaml")
 
+    mainsub = parser.add_subparsers(dest="category", required=True)
     actions = ActionsMap()
     actions.fill_parser(mainsub)
 
@@ -71,8 +72,30 @@ def main() -> None:
             cli_test(args, config, server)
         return
 
+    method, uri, params = args.func(args)
+
     server.login()
-    args.func(args, server)
+    result = server.request(method, uri, params=params)
+    result.raise_for_status()
+
+
+    # Format and print result
+    if args.output_as == "json":
+        import json
+        from .prints import JSONExtendedEncoder
+        print(json.dumps(result.json(), cls=JSONExtendedEncoder, ensure_ascii=False))
+
+    elif args.output_as == "plain":
+        from .prints import plain_print_dict
+        plain_print_dict(result.json())
+
+    elif args.output_as == "yaml":
+        # FIXME:
+        from .prints import pretty_print_dict
+        if isinstance(data := result.json(), dict):
+            pretty_print_dict(result.json())
+        else:
+            print(data)
 
 
 __main__ = main
