@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
-import json
 import logging
 import sys
-
-import yaml
 
 from .actionsmap import ActionsMap
 from .config import Config
 from .server import Server
-
-__all__ = ["Config"]
 
 
 def set_logging_level_from_int(value: int) -> None:
@@ -78,3 +73,6 @@ def main() -> None:
 
     server.login()
     args.func(args, server)
+
+
+__main__ = main
