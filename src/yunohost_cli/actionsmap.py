@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import platformdirs
 import argparse
+import json
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-import json
+
+import platformdirs
 
 if TYPE_CHECKING:
     _SubparserType = argparse._SubParsersAction[argparse.ArgumentParser]
@@ -171,14 +172,17 @@ class ActionsMap:
         actionsmap = find_actionsmap()
         map_cache = Path(platformdirs.user_cache_dir("yunohost")) / "actionsmap.json"
 
-        if map_cache.exists() and map_cache.stat().st_mtime > actionsmap.stat().st_mtime:
+        if (
+            map_cache.exists()
+            and map_cache.stat().st_mtime > actionsmap.stat().st_mtime
+        ):
             self.map = json.load(map_cache.open("r"))
         else:
             import yaml
+
             self.map = yaml.safe_load(find_actionsmap().open("r"))
             map_cache.parent.mkdir(parents=True, exist_ok=True)
             json.dump(self.map, map_cache.open("w"), indent=0)
-
 
     def fill_parser(self, subparser: _SubparserType) -> None:
         for category in self.categories.values():

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from json.encoder import JSONEncoder
+import os
 from collections import OrderedDict
 from datetime import date, datetime
-import os
+from json.encoder import JSONEncoder
 
 CLI_COLOR_TEMPLATE = "\033[{:d}m\033[1m"
 END_CLI_COLOR = "\033[m"
@@ -139,8 +139,6 @@ def pretty_print_dict(d, depth=0):
             if isinstance(v, date):
                 v = pretty_date(v)
             print("{:s}{}: {}".format("  " * depth, k, v))
-
-
 
 
 class JSONExtendedEncoder(JSONEncoder):

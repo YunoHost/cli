@@ -17,7 +17,9 @@ class Server:
         server_config = Config().config["servers"][self.name]
         server_cache_file = Config().cache_dir / self.name
         if server_cache_file.exists():
-            self.session.cookies["yunohost.admin"] = server_cache_file.read_text().strip()
+            self.session.cookies["yunohost.admin"] = (
+                server_cache_file.read_text().strip()
+            )
             return True
 
         data = {
