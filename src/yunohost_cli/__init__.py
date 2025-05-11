@@ -83,7 +83,9 @@ def main() -> None:
 
     server.login()
     result = server.request(method, uri, params=params)
-    result.raise_for_status()
+    if result.status_code != 200:
+        print(result, result.text)
+        result.raise_for_status()
 
     # Format and print result
     if args.output_as == "json":
