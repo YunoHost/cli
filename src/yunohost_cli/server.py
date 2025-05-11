@@ -11,7 +11,14 @@ from .config import Config
 class Server:
     def __init__(self, name: str) -> None:
         self.name = name
-        self.session = httpx.Client()
+
+        timeout = httpx.Timeout(
+            10.0,
+            connect=10,
+            read=1000,
+            write=10,
+        )
+        self.session = httpx.Client(timeout=timeout)
 
     def login(self) -> bool:
         server_config = Config().config["servers"][self.name]
