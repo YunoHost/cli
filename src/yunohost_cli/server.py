@@ -4,6 +4,7 @@ import logging
 import ssl
 from typing import Any
 import datetime
+from packaging.version import Version
 import json
 import httpx
 from httpx_sse import aconnect_sse
@@ -55,6 +56,10 @@ class Server:
         except httpx.RequestError as err:
             logging.error(err)
             return False
+
+    async def assert_version(self) -> bool:
+        version = (await self.get("/tools/versions"))["yunohost"]["version"]
+        return Version(version) >= Version("12.1.0")
 
     def real_url(self, url: str) -> str:
         base = Config().config["servers"][self.name]["hostname"]
