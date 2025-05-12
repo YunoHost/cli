@@ -3,10 +3,15 @@
 import logging
 import ssl
 from typing import Any
+import datetime
 
+import json
 import httpx
+from httpx_sse import aconnect_sse
 
 from .config import Config
+
+from .prints import pretty_date
 
 
 class Server:
@@ -20,7 +25,11 @@ class Server:
             read=1000,
             write=10,
         )
-        self.session = httpx.Client(timeout=timeout, verify=ssl_ctx if secure else False)
+        self.session = httpx.AsyncClient(
+            timeout=timeout,
+            verify=ssl_ctx if secure else False,
+            follow_redirects=True,
+        )
 
     def login(self, force: bool = False) -> bool:
         server_config = Config().config["servers"][self.name]
@@ -53,11 +62,39 @@ class Server:
         api_path = "/yunohost/api/"
         return "https://" + f"{base}{api_path}{url}".replace("//", "/")
 
-    def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
-        return self.session.request(method, self.real_url(url), **kwargs)
+    async def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
+        result = await self.session.request(method, self.real_url(url), **kwargs)
+        await self.session.aclose()
+        return result
 
-    def get(self, url: str, **kwargs: Any) -> httpx.Response:
-        return self.session.get(self.real_url(url), **kwargs)
+    async def get(self, url: str, **kwargs: Any) -> httpx.Response:
+        result = await self.session.get(self.real_url(url), **kwargs)
+        await self.session.aclose()
+        return result
 
-    def post(self, url: str, **kwargs: Any) -> httpx.Response:
-        return self.session.post(self.real_url(url), **kwargs)
+    async def post(self, url: str, **kwargs: Any) -> httpx.Response:
+        result = await self.session.post(self.real_url(url), **kwargs)
+        await self.session.aclose()
+        return result
+
+    async def sse_logs(self) -> None:
+        sse_uri = self.real_url("/sse")
+
+        try:
+            async with aconnect_sse(self.session, "GET", sse_uri) as event_source:
+                async for sse in event_source.aiter_sse():
+                    if not sse.data:
+                        continue
+                    data = json.loads(sse.data)
+                    timestamp = datetime.datetime.utcfromtimestamp(data.get("timestamp") or 0)
+                    title = data.get("title")
+                    msg = data.get("msg")
+                    started_by = data.get("started_by")
+
+                    if sse.event ==  "start":
+                        print(f"[{pretty_date(timestamp)}] {title}... (Started by {started_by})")
+                    if sse.event == "msg":
+                        print(f"[{pretty_date(timestamp)}] {msg}")
+
+        except:
+            pass

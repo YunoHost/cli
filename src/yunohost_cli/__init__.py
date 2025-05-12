@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import asyncio
 import argparse
 import logging
 import sys
@@ -37,7 +38,7 @@ def cli_test(args: argparse.Namespace, config: Config, server: Server) -> None:
         sys.exit(1)
 
 
-def main() -> None:
+async def async_main() -> None:
     parser = argparse.ArgumentParser("ynh")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-s", "--server-name", type=str, default="default")
@@ -65,6 +66,8 @@ def main() -> None:
     auth.add_argument("password", type=str)
     clisub.add_parser("test", help="Check authentication")
 
+    sse = mainsub.add_parser("sse", help="dump logs via SSE")
+
     args = parser.parse_args()
 
     set_logging_level_from_int(args.verbose)
@@ -80,10 +83,18 @@ def main() -> None:
             cli_test(args, config, server)
         return
 
+    if args.category == "sse":
+        server.login()
+        await server.sse_logs()
+        return
+
     method, uri, params = args.func(args)
 
     server.login()
-    result = server.request(method, uri, params=params)
+    results = await asyncio.gather(server.request(method, uri, params=params), server.sse_logs())
+
+    result = results[0]
+
     if result.status_code != 200:
         print(result, result.text)
         result.raise_for_status()
@@ -111,4 +122,6 @@ def main() -> None:
             print(data)
 
 
-__main__ = main
+def main():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(async_main())
