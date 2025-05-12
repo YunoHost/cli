@@ -4,7 +4,6 @@ import logging
 import ssl
 from typing import Any
 import datetime
-
 import json
 import httpx
 from httpx_sse import aconnect_sse
@@ -31,7 +30,7 @@ class Server:
             follow_redirects=True,
         )
 
-    def login(self, force: bool = False) -> bool:
+    async def login(self, force: bool = False) -> bool:
         server_config = Config().config["servers"][self.name]
         server_cache_file = Config().cache_dir / self.name
         if force:
@@ -48,7 +47,7 @@ class Server:
         }
         try:
             logging.info("Logging in...")
-            result = self.post("/login", data=data)
+            result = await self.post("/login", data=data)
             if result.status_code != 200:
                 return False
             server_cache_file.write_text(result.cookies["yunohost.admin"])

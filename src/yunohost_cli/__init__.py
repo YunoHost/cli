@@ -16,13 +16,13 @@ def set_logging_level_from_int(value: int) -> None:
     logging.getLogger().setLevel(level)
 
 
-def cli_auth(args: argparse.Namespace, config: Config, server: Server) -> None:
+async def cli_auth(args: argparse.Namespace, config: Config, server: Server) -> None:
     if args.server_name in config.config.get("servers", {}):
         logging.error(f"Server {args.server_name} already present in config!")
         sys.exit(1)
 
     config.server_add(args.server_name, args.host, args.login, args.password)
-    if server.login(force=True):
+    if await server.login(force=True):
         print("Authentication successful")
     else:
         logging.error("Could not authenticate!")
@@ -30,8 +30,8 @@ def cli_auth(args: argparse.Namespace, config: Config, server: Server) -> None:
         sys.exit(1)
 
 
-def cli_test(args: argparse.Namespace, config: Config, server: Server) -> None:
-    if server.login():
+async def cli_test(args: argparse.Namespace, config: Config, server: Server) -> None:
+    if await server.login():
         logging.info("Authentication successful")
     else:
         logging.error("Could not authenticate!")
@@ -78,19 +78,19 @@ async def async_main() -> None:
 
     if args.category == "cli":
         if args.action == "auth":
-            cli_auth(args, config, server)
+            await cli_auth(args, config, server)
         if args.action == "test":
-            cli_test(args, config, server)
+            await cli_test(args, config, server)
         return
 
+    await server.login()
+
     if args.category == "sse":
-        server.login()
         await server.sse_logs()
         return
 
     method, uri, params = args.func(args)
 
-    server.login()
     results = await asyncio.gather(server.request(method, uri, params=params), server.sse_logs())
 
     result = results[0]
