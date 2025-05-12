@@ -58,7 +58,7 @@ class Server:
             return False
 
     async def assert_version(self) -> bool:
-        version = (await self.get("/tools/versions")).json()["yunohost"]["version"]
+        version = (await self.get("/versions")).json()["yunohost"]["version"]
         if Version(version) < Version("12.1.0"):
             logging.error(f"Your server is too old! (server version={version}, required>=12.1)")
             return False
