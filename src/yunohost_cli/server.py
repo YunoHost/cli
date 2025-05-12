@@ -22,7 +22,7 @@ class Server:
         )
         self.session = httpx.Client(timeout=timeout, verify=ssl_ctx if secure else False)
 
-    def login(self, force: bool = True) -> bool:
+    def login(self, force: bool = False) -> bool:
         server_config = Config().config["servers"][self.name]
         server_cache_file = Config().cache_dir / self.name
         if force:
