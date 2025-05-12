@@ -10,7 +10,7 @@ from .config import Config
 
 
 class Server:
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, secure: bool) -> None:
         self.name = name
 
         ssl_ctx = ssl.create_default_context()
@@ -20,7 +20,7 @@ class Server:
             read=1000,
             write=10,
         )
-        self.session = httpx.Client(timeout=timeout, verify=ssl_ctx)
+        self.session = httpx.Client(timeout=timeout, verify=ssl_ctx if secure else False)
 
     def login(self, force: bool = True) -> bool:
         server_config = Config().config["servers"][self.name]

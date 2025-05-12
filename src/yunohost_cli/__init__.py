@@ -49,6 +49,7 @@ def main() -> None:
         choices=["json", "plain", "yaml"],
         default="yaml",
     )
+    parser.add_argument("-k", "--insecure", action="store_true", default=False, help="Insecure https")
 
     mainsub = parser.add_subparsers(dest="category", required=True)
     actions = ActionsMap()
@@ -70,7 +71,7 @@ def main() -> None:
 
     config = Config()
 
-    server = Server(args.server_name)
+    server = Server(args.server_name, not args.insecure)
 
     if args.category == "cli":
         if args.action == "auth":
