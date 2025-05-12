@@ -85,6 +85,9 @@ async def async_main() -> None:
 
     await server.login()
 
+    if not await server.assert_version():
+        return
+
     if args.category == "sse":
         await server.sse_logs()
         return

@@ -59,7 +59,10 @@ class Server:
 
     async def assert_version(self) -> bool:
         version = (await self.get("/tools/versions"))["yunohost"]["version"]
-        return Version(version) >= Version("12.1.0")
+        if Version(version) < Version("12.1.0"):
+            logging.error(f"Your server is too old! (server version={version}, required>=12.1)")
+            return False
+        return True
 
     def real_url(self, url: str) -> str:
         base = Config().config["servers"][self.name]["hostname"]
