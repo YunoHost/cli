@@ -21,8 +21,8 @@ def cli_auth(args: argparse.Namespace, config: Config, server: Server) -> None:
         sys.exit(1)
 
     config.server_add(args.server_name, args.host, args.login, args.password)
-    if server.login():
-        logging.info("Authentication successful")
+    if server.login(force=True):
+        print("Authentication successful")
     else:
         logging.error("Could not authenticate!")
         config.server_remove(args.server_name)

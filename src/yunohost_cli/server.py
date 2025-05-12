@@ -22,9 +22,11 @@ class Server:
         )
         self.session = httpx.Client(timeout=timeout, verify=ssl_ctx)
 
-    def login(self) -> bool:
+    def login(self, force: bool = True) -> bool:
         server_config = Config().config["servers"][self.name]
         server_cache_file = Config().cache_dir / self.name
+        if force:
+            server_cache_file.unlink(missing_ok=True)
         if server_cache_file.exists():
             self.session.cookies["yunohost.admin"] = (
                 server_cache_file.read_text().strip()
