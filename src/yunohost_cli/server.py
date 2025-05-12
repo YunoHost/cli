@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import ssl
 from typing import Any
 
 import httpx
@@ -12,13 +13,14 @@ class Server:
     def __init__(self, name: str) -> None:
         self.name = name
 
+        ssl_ctx = ssl.create_default_context()
         timeout = httpx.Timeout(
             10.0,
             connect=10,
             read=1000,
             write=10,
         )
-        self.session = httpx.Client(timeout=timeout)
+        self.session = httpx.Client(timeout=timeout, verify=ssl_ctx)
 
     def login(self) -> bool:
         server_config = Config().config["servers"][self.name]

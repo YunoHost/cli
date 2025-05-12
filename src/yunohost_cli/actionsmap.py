@@ -40,7 +40,9 @@ class MapActionArg:
         if len(self.args) == 2:
             self.varname = self.args[1].removeprefix("--").replace("-", "_")
         else:
-            self.varname = self.args[0].removeprefix("-").removeprefix("-").replace("-", "_")
+            self.varname = (
+                self.args[0].removeprefix("-").removeprefix("-").replace("-", "_")
+            )
 
     def fill_parser(self, subparser: argparse.ArgumentParser) -> None:
         kwargs = {}
