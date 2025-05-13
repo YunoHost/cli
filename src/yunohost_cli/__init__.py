@@ -109,21 +109,20 @@ async def async_main() -> None:
     if args.output_as == "json":
         import json
 
-        from .prints import JSONExtendedEncoder
+        from .cli import JSONExtendedEncoder
 
         print(json.dumps(result.json(), cls=JSONExtendedEncoder, ensure_ascii=False))
 
     elif args.output_as == "plain":
-        from .prints import plain_print_dict
+        from .cli import print_data_plain
 
-        plain_print_dict(result.json())
+        print_data_plain(result.json())
 
     elif args.output_as == "yaml":
-        # FIXME:
-        from .prints import pretty_print_dict
+        from .cli import print_data_simpleyaml
 
         if isinstance(data := result.json(), dict):
-            pretty_print_dict(result.json())
+            print_data_simpleyaml(result.json())
         else:
             print(data)
 
