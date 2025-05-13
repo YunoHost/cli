@@ -9,9 +9,8 @@ import json
 import httpx
 from httpx_sse import aconnect_sse
 
+from .cli import show_sse_log
 from .config import Config
-
-from .prints import pretty_date
 
 
 class Server:
@@ -93,15 +92,9 @@ class Server:
                     if not sse.data:
                         continue
                     data = json.loads(sse.data)
-                    timestamp = datetime.datetime.utcfromtimestamp(data.get("timestamp") or 0)
-                    title = data.get("title")
-                    msg = data.get("msg")
-                    started_by = data.get("started_by")
-
-                    if sse.event ==  "start":
-                        print(f"[{pretty_date(timestamp)}] {title}... (Started by {started_by})")
-                    if sse.event == "msg":
-                        print(f"[{pretty_date(timestamp)}] {msg}")
-
+                    try:
+                        show_sse_log(sse.event, data)
+                    except Exception as err:
+                        print(f"Error while parsing the sse logs: {err}")
         except:
             pass
