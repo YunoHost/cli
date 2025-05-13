@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
+import json
 import logging
 import ssl
 from typing import Any
-import datetime
-from packaging.version import Version
-import json
+
 import httpx
 from httpx_sse import aconnect_sse
+from packaging.version import Version
 
 from .cli import show_sse_log
 from .config import Config
@@ -59,7 +59,9 @@ class Server:
     async def assert_version(self) -> bool:
         version = (await self.get("/versions")).json()["yunohost"]["version"]
         if Version(version) < Version("12.1.0"):
-            logging.error(f"Your server is too old! (server version={version}, required>=12.1)")
+            logging.error(
+                f"Your server is too old! (server version={version}, required>=12.1)"
+            )
             return False
         return True
 
@@ -69,19 +71,13 @@ class Server:
         return "https://" + f"{base}{api_path}{url}".replace("//", "/")
 
     async def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
-        result = await self.session.request(method, self.real_url(url), **kwargs)
-        await self.session.aclose()
-        return result
+        return await self.session.request(method, self.real_url(url), **kwargs)
 
     async def get(self, url: str, **kwargs: Any) -> httpx.Response:
-        result = await self.session.get(self.real_url(url), **kwargs)
-        await self.session.aclose()
-        return result
+        return await self.session.get(self.real_url(url), **kwargs)
 
     async def post(self, url: str, **kwargs: Any) -> httpx.Response:
-        result = await self.session.post(self.real_url(url), **kwargs)
-        await self.session.aclose()
-        return result
+        return await self.session.post(self.real_url(url), **kwargs)
 
     async def sse_logs(self) -> None:
         sse_uri = self.real_url("/sse")

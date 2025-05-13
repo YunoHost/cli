@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import asyncio
 import argparse
+import asyncio
 import logging
 import sys
 
@@ -50,7 +50,9 @@ async def async_main() -> None:
         choices=["json", "plain", "yaml"],
         default="yaml",
     )
-    parser.add_argument("-k", "--insecure", action="store_true", default=False, help="Insecure https")
+    parser.add_argument(
+        "-k", "--insecure", action="store_true", default=False, help="Insecure https"
+    )
 
     mainsub = parser.add_subparsers(dest="category", required=True)
     actions = ActionsMap()
@@ -94,9 +96,10 @@ async def async_main() -> None:
 
     method, uri, params = args.func(args)
 
-    results = await asyncio.gather(server.request(method, uri, params=params), server.sse_logs())
-
-    result = results[0]
+    # Start SSE
+    sse_task = asyncio.create_task(server.sse_logs())
+    result = await server.request(method, uri, params=params)
+    await server.session.aclose()
 
     if result.status_code != 200:
         print(result, result.text)
