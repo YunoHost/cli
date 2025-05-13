@@ -193,7 +193,7 @@ def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
             if data == "":
                 return "''"
             if ":" in data:
-                return f'"{data}"'
+                return f'"{data.replace('"', '\\"')}"'
             if data.isdigit():
                 return f"'{data}'"
             if data in ["yes", "no"]:
