@@ -119,6 +119,9 @@ class MapAction:
                     uris = uris[1].replace(replacestring, valuestring)
                     return
 
+            if isinstance(value, bool) and not value:
+                return
+
             params[arg.varname] = value
 
         for arg in self.args:

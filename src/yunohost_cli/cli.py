@@ -214,10 +214,12 @@ def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
         if parent == "dict":
             print()
             _depth = depth
+        if parent == "list":
+            print(" ", end="")
         for value in data:
-            print(f"{'  ' * (_depth - 1)}-", end="")
+            print(f"{'  ' * (_depth)}-", end="")
             _depth = depth
-            print_data_simpleyaml(value, depth, parent="list")
+            print_data_simpleyaml(value, depth + 1, parent="list")
         return
 
     if isinstance(data, dict):
