@@ -42,6 +42,20 @@ def show_sse_log(type: str, data: dict[str, Any]) -> None:
         print(f"[{pretty_date(date)}] {title}... (Started by {author})")
         return
 
+    if type in ["end"]:
+        # print(data)
+        success = data["success"]
+        date = float(data.get("timestamp", 0))
+
+        if success:
+            author = data["started_by"]
+            print(f"{level_str('success')}Operation finished (Started by {author})")
+        else:
+            errormsg = data["errormsg"]
+            print(f"{level_str('error')}Operation failed!")
+            print(f"{level_str('error')}{errormsg}")
+        return
+
     if type in ["msg"]:
         level: str = data["level"]
         msg: str = data["msg"]
