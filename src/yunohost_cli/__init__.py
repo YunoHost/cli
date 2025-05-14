@@ -68,7 +68,7 @@ async def async_main() -> None:
     auth.add_argument("password", type=str)
     clisub.add_parser("test", help="Check authentication")
 
-    sse = mainsub.add_parser("sse", help="dump logs via SSE")
+    mainsub.add_parser("sse", help="dump logs via SSE")
 
     args = parser.parse_args()
 

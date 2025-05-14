@@ -92,5 +92,5 @@ class Server:
                         show_sse_log(sse.event, data)
                     except Exception as err:
                         print(f"Error while parsing the sse logs: {err}")
-        except:
+        except Exception:
             pass

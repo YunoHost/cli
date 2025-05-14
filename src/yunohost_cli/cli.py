@@ -3,11 +3,10 @@
 import datetime
 import logging
 import os
-from collections import OrderedDict
 from json.encoder import JSONEncoder
-from typing import Any, Callable
+from typing import Any
 
-from colored import Back, Fore, Style
+from colored import Fore, Style
 
 
 def level_str(level: str) -> str:
@@ -71,7 +70,7 @@ def prompt(
     prefill: str = "",
     multiline: bool = False,
     help: str = "",
-    completions: list[str] = [],
+    completions: list[str] | None = None,
     visible: bool = True,
     confirm: bool = False,
 ) -> str:
@@ -87,7 +86,7 @@ def prompt(
     from prompt_toolkit.formatted_text import OneStyleAndTextTuple
     from prompt_toolkit.styles import Style
 
-    completer = WordCompleter(completions)
+    completer = WordCompleter(completions or [])
 
     style = Style.from_dict(
         {
@@ -157,7 +156,7 @@ def print_data_plain(data: Any, depth: int = 0) -> None:
     # skip first key printing
     if depth == 0 and (isinstance(data, dict) and len(data) == 1):
         _, data = data.popitem()
-    if isinstance(data, (tuple, set)):
+    if isinstance(data, tuple | set):
         data = list(data)
     if isinstance(data, list):
         for value in data:
@@ -231,15 +230,14 @@ def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
             print_data_simpleyaml(value, depth + 1, parent="dict")
         return
 
-    if isinstance(data, str):
-        if "\n" in data:
-            if parent == "dict":
-                print("|")
-                _depth = depth
-            for index, line in enumerate(data.split("\n")):
-                print(f"{'  ' * depth}{repr_simple(line)}")
-                depth = depth
-            return
+    if isinstance(data, str) and "\n" in data:
+        if parent == "dict":
+            print("|")
+            _depth = depth
+        for line in data.split("\n"):
+            print(f"{'  ' * depth}{repr_simple(line)}")
+            depth = depth
+        return
 
     print(f" {repr_simple(data)}")
 
@@ -259,14 +257,13 @@ class JSONExtendedEncoder(JSONEncoder):
     def default(self, o):
         """Return a serializable object"""
 
-        import pytz  # Lazy loading, this takes like 3+ sec on a RPi2 ?!
-
         # Convert compatible containers into list
         if isinstance(o, set) or (hasattr(o, "__iter__") and hasattr(o, "next")):
             return list(o)
 
         # Return the repr for object that json can't encode
         logging.warning(
-            f"cannot properly encode in JSON the object {type(o)}, returned repr is: {o}"
+            f"cannot properly encode in JSON the object {type(o)}, "
+            "returned repr is: {o}"
         )
         return repr(o)

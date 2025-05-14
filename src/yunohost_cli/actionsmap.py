@@ -100,15 +100,12 @@ class MapAction:
                 return
 
             replacestring = f"<{arg.varname}>"
-            if isinstance(value, list):
-                valuestring = "%20".join(value)
-            else:
-                valuestring = str(value)
 
-            if isinstance(uris, str):
-                if replacestring in uris:
-                    uris = uris.replace(replacestring, valuestring)
-                    return
+            valuestring = "%20".join(value) if isinstance(value, list) else str(value)
+
+            if isinstance(uris, str) and replacestring in uris:
+                uris = uris.replace(replacestring, valuestring)
+                return
 
             # choose between uriss
             if isinstance(uris, list):
@@ -128,10 +125,7 @@ class MapAction:
             handle_arg(arg)
 
         if isinstance(uris, list):
-            if "<" in uris[0]:
-                uris = uris[1]
-            else:
-                uris = uris[0]
+            uris = uris[1] if "<" in uris[0] else uris[0]
 
         method, uri = uris.split(" ")
         return method, uri, params
