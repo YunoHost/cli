@@ -7,39 +7,20 @@ from collections import OrderedDict
 from typing import Any, Callable
 from json.encoder import JSONEncoder
 
-
-class Colored:
-    # FIXME use python lib like colored?
-    START = "\033[{:d}m\033[1m"
-    END = "\033[m"
-
-    _COLORS: dict[str, int] = {
-        "red": 31,
-        "green": 32,
-        "yellow": 33,
-        "blue": 34,
-        "purple": 35,
-        "cyan": 36,
-        "white": 37,
-    }
-
-    def __new__(cls, color: str, text: str):
-        if os.isatty(1):
-            colorcode = cls._COLORS[color]
-            return f"{cls.START.format(colorcode)}{text}{cls.END}"
-        return text
+from colored import Fore, Back, Style
 
 
 def level_str(level: str) -> str:
     """Display a message"""
+    length = len(Fore.green) + len(Style.reset) + 10
     if level == "success":
-        return Colored("green", f"[{level}]\t")
+        return f"{Fore.green}[{level}]{Style.reset}".ljust(length)
     if level == "info":
-        return Colored("blue", f"[{level}]\t")
+        return f"{Fore.blue}[{level}]{Style.reset}".ljust(length)
     elif level == "warning":
-        return Colored("yellow", f"[{level}]\t")
+        return f"{Fore.yellow}[{level}]{Style.reset}".ljust(length)
     elif level == "error":
-        return Colored("red", f"[{level}]\t")
+        return f"{Fore.red}[{level}]{Style.reset}".ljust(length)
     return ""
 
 
@@ -229,7 +210,7 @@ def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
         if parent == "list":
             print(" ", end="")
         for key, value in sorted(data.items()):
-            print(f"{'  ' * _depth}{Colored('purple', repr_simple(key))}:", end="")
+            print(f"{'  ' * _depth}{Fore.magenta}{repr_simple(key)}{Style.reset}:", end="")
             _depth = depth
             print_data_simpleyaml(value, depth + 1, parent="dict")
         return
@@ -268,16 +249,6 @@ class JSONExtendedEncoder(JSONEncoder):
         if isinstance(o, set) or (hasattr(o, "__iter__") and hasattr(o, "next")):
             return list(o)
 
-        # Display the date in its iso format ISO-8601 Internet Profile (RFC 3339)
-        if isinstance(o, datetime.date):
-            if o.tzinfo is None:
-                o = o.replace(tzinfo=pytz.utc)
-            return o.isoformat()
-
         # Return the repr for object that json can't encode
-        logger.warning(
-            "cannot properly encode in JSON the object %s, " "returned repr is: %r",
-            type(o),
-            o,
-        )
+        logging.warning(f"cannot properly encode in JSON the object {type(o)}, returned repr is: {o}")
         return repr(o)
