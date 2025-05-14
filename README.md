@@ -28,3 +28,16 @@ uv run cli auth myserver.tld myusername mypassword
 
 uv run ynh user list
 ```
+
+
+## TODO:
+
+- [ ] debug log streaming ?
+- [ ] implement interactive prompts
+  - [ ] app install
+  - [ ] user update
+  - [ ] ?
+- [ ] safe authentication
+- [ ] automatic authentication on local server
+
+- [ ] rewrite in rust?
