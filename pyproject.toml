@@ -43,3 +43,6 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 ignore_missing_imports = false
 strict = true
+
+[tool.ruff]
+line-length = 120
