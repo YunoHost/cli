@@ -46,3 +46,13 @@ strict = true
 
 [tool.ruff]
 line-length = 120
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "C", "D", "LOG", "G004", "T20", "FBT", "TRY", "TD", "FIX", "EM", "RET505", "COM812",
+    "BLE001", "ERA001", "EXE001", "ANN401", "PLR2004"
+]
+
+[tool.ruff.lint.pylint]
+max-args = 10
