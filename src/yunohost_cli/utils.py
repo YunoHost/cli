@@ -6,7 +6,7 @@ _T = TypeVar("_T")
 
 
 class Singleton(type, Generic[_T]):
-    _instances: dict["Singleton[_T]", _T] = {}
+    _instances: dict["Singleton[_T]", _T] = {}  # noqa: RUF012
 
     def __call__(cls, *args: Any, **kwargs: Any) -> _T:
         if cls not in cls._instances:
