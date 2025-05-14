@@ -97,10 +97,10 @@ async def async_main() -> None:
     method, uri, params = args.func(args)
 
     # Start SSE
-    sse_task = asyncio.create_task(server.sse_logs())
-    result = await server.request(method, uri, params=params)
+    request = server.request(method, uri, params=params)
+    asyncio.create_task(server.sse_logs())
+    result = await request
     await server.session.aclose()
-    await sse_task
 
     if result.status_code != 200:
         print(result, result.text)
