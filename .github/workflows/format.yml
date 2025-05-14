@@ -1,0 +1,20 @@
+name: Ruff format
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  ruff:
+    name: Ruff format
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: astral-sh/ruff-action@v3
+      with:
+        args: "format"
+
+    - uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: ":art: Format Python code with Ruff"
