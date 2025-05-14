@@ -28,20 +28,20 @@ def pretty_date(date: float) -> str:
     return timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def show_sse_log(type: str, data: dict[str, Any]) -> None:
-    logging.debug(f"{type=}, {data=}")
+def show_sse_log(kind: str, data: dict[str, Any]) -> None:
+    logging.debug(f"{kind=}, {data=}")
 
-    if type in ["recent_history", "heartbeat"]:
+    if kind in ["recent_history", "heartbeat"]:
         return
 
-    if type in ["start"]:
+    if kind in ["start"]:
         date = float(data.get("timestamp", 0))
         title = data["title"]
         author = data["started_by"]
         print(f"[{pretty_date(date)}] {title}... (Started by {author})")
         return
 
-    if type in ["end"]:
+    if kind in ["end"]:
         # print(data)
         success = data["success"]
         date = float(data.get("timestamp", 0))
@@ -55,13 +55,13 @@ def show_sse_log(type: str, data: dict[str, Any]) -> None:
             print(f"{level_str('error')}{errormsg}")
         return
 
-    if type in ["msg"]:
+    if kind in ["msg"]:
         level: str = data["level"]
         msg: str = data["msg"]
         print(f"{level_str(level)}{msg}")
         return
 
-    logging.error(f"Unknown SSE log type {type}")
+    logging.error(f"Unknown SSE log kind {kind}")
 
 
 def prompt(
@@ -69,7 +69,7 @@ def prompt(
     color: str = "blue",
     prefill: str = "",
     multiline: bool = False,
-    help: str = "",
+    helptext: str = "",
     completions: list[str] | None = None,
     visible: bool = True,
     confirm: bool = False,
@@ -95,8 +95,8 @@ def prompt(
         }
     )
 
-    def help_bottom_toolbar():
-        return [("class:", help)]
+    def help_bottom_toolbar() -> list[OneStyleAndTextTuple]:
+        return [("class:", helptext)]
 
     colored_message: list[OneStyleAndTextTuple] = [
         ("class:message", message),
@@ -105,7 +105,7 @@ def prompt(
 
     value = prompt_toolkit.prompt(
         colored_message,
-        bottom_toolbar=help_bottom_toolbar if help else None,
+        bottom_toolbar=help_bottom_toolbar if helptext else None,
         style=style,
         default=prefill,
         completer=completer,
@@ -119,7 +119,7 @@ def prompt(
             color=color,
             prefill=prefill,
             multiline=multiline,
-            help=help,
+            helptext=helptext,
             completions=completions,
             visible=visible,
             confirm=False,
@@ -182,24 +182,28 @@ def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
 
     _depth = 0
 
-    def repr_simple(data) -> str:
+    def repr_simple(data: str | bool | None) -> str:
         if isinstance(data, str):
+            strepr = data
             if data == "":
-                return "''"
+                strepr = "''"
             if ":" in data:
-                return f'"{data.replace('"', '\\"')}"'
+                strepr = f'"{data.replace('"', '\\"')}"'
             if data.isdigit():
-                return f"'{data}'"
+                strepr = f"'{data}'"
             if data in ["yes", "no"]:
-                return f"'{data}'"
+                strepr = f"'{data}'"
 
-        if isinstance(data, bool):
-            return "true" if data else "false"
+        elif isinstance(data, bool):
+            strepr = "true" if data else "false"
 
-        if data is None:
-            return "null"
+        elif data is None:
+            strepr = "null"
 
-        return data
+        else:
+            raise ValueError(f"repr_simple can't take values of type {type(data)}")
+
+        return strepr
 
     if isinstance(data, list):
         if len(data) == 0:
@@ -234,7 +238,7 @@ def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
             _depth = depth
         for line in data.split("\n"):
             print(f"{'  ' * depth}{repr_simple(line)}")
-            depth = depth
+            _depth = depth
         return
 
     print(f" {repr_simple(data)}")
@@ -252,12 +256,19 @@ class JSONExtendedEncoder(JSONEncoder):
 
     """
 
-    def default(self, o):
+    def default(self, o: Any) -> Any:
         """Return a serializable object"""
 
         # Convert compatible containers into list
-        if isinstance(o, set) or (hasattr(o, "__iter__") and hasattr(o, "next")):
+        if isinstance(o, set):
             return list(o)
+
+        try:
+            iterable = iter(o)
+        except TypeError:
+            pass
+        else:
+            return list(iterable)
 
         # Return the repr for object that json can't encode
         logging.warning(f"cannot properly encode in JSON the object {type(o)}, returned repr is: {{o}}")

@@ -46,7 +46,7 @@ class Server:
         try:
             logging.info("Logging in...")
             result = await self.post("/login", data=data)
-            if result.status_code != 200:
+            if result.is_error:
                 return False
             server_cache_file.write_text(result.cookies["yunohost.admin"])
             return True
@@ -55,7 +55,9 @@ class Server:
             return False
 
     async def assert_version(self) -> bool:
-        version = (await self.get("/versions")).json()["yunohost"]["version"]
+        result = await self.get("/versions")
+        result.raise_for_status()
+        version = result.json()["yunohost"]["version"]
         if Version(version) < Version("12.1.0"):
             logging.error(f"Your server is too old! (server version={version}, required>=12.1)")
             return False
@@ -88,5 +90,5 @@ class Server:
                         show_sse_log(sse.event, data)
                     except Exception as err:
                         print(f"Error while parsing the sse logs: {err}")
-        except Exception:
-            pass
+        except Exception as err:
+            logging.debug(f"SSE failed with {err}")

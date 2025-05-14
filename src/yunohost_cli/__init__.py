@@ -30,7 +30,7 @@ async def cli_auth(args: argparse.Namespace, config: Config, server: Server) -> 
         sys.exit(1)
 
 
-async def cli_test(args: argparse.Namespace, config: Config, server: Server) -> None:
+async def cli_test(_args: argparse.Namespace, _config: Config, server: Server) -> None:
     if await server.login():
         logging.info("Authentication successful")
     else:
@@ -73,7 +73,6 @@ async def async_main() -> None:
     set_logging_level_from_int(args.verbose)
 
     config = Config()
-
     server = Server(args.server_name, not args.insecure)
 
     if args.category == "cli":
@@ -130,6 +129,6 @@ async def async_main() -> None:
             print(data)
 
 
-def main():
+def main() -> None:
     loop = asyncio.get_event_loop()
     loop.run_until_complete(async_main())

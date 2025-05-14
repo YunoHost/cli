@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 import platformdirs
 
 if TYPE_CHECKING:
-    _SubparserType = argparse._SubParsersAction[argparse.ArgumentParser]
+    _SubparserType = argparse._SubParsersAction[argparse.ArgumentParser]  # noqa: SLF001
 else:
     _SubparserType = Any
 
