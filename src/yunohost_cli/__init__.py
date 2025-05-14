@@ -100,7 +100,7 @@ async def async_main() -> None:
     result = await request
     await server.session.aclose()
 
-    if result.status_code != 200:
+    if result.is_error:
         print(result, result.text)
         result.raise_for_status()
 

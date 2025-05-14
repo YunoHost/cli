@@ -56,9 +56,7 @@ class MapActionArg:
         )
 
     def value(self, args: argparse.Namespace) -> Any:
-        value = vars(args)[self.varname]
-
-        return value
+        return vars(args)[self.varname]
 
 
 class MapAction:
@@ -73,10 +71,7 @@ class MapAction:
     def fill_parser(self, subparser: _SubparserType) -> None:
         if self.config.get("deprecated", False):
             return
-        if self.no_help:
-            parser = subparser.add_parser(self.name)
-        else:
-            parser = subparser.add_parser(self.name, help=self.help)
+        parser = subparser.add_parser(self.name) if self.no_help else subparser.add_parser(self.name, help=self.help)
 
         for arg in self.args:
             arg.fill_parser(parser)
