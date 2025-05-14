@@ -96,9 +96,13 @@ async def async_main() -> None:
 
     # Start SSE
     request = server.request(method, uri, params=params)
-    asyncio.create_task(server.sse_logs())
+    sse_task = asyncio.create_task(server.sse_logs())
     result = await request
-    await server.session.aclose()
+    try:
+        sse_task.cancel()
+        await sse_task
+    except asyncio.CancelledError:
+        pass
 
     if result.is_error:
         print(result, result.text)
