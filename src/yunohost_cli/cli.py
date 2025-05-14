@@ -4,10 +4,10 @@ import datetime
 import logging
 import os
 from collections import OrderedDict
-from typing import Any, Callable
 from json.encoder import JSONEncoder
+from typing import Any, Callable
 
-from colored import Fore, Back, Style
+from colored import Back, Fore, Style
 
 
 def level_str(level: str) -> str:
@@ -210,7 +210,9 @@ def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
         if parent == "list":
             print(" ", end="")
         for key, value in sorted(data.items()):
-            print(f"{'  ' * _depth}{Fore.magenta}{repr_simple(key)}{Style.reset}:", end="")
+            print(
+                f"{'  ' * _depth}{Fore.magenta}{repr_simple(key)}{Style.reset}:", end=""
+            )
             _depth = depth
             print_data_simpleyaml(value, depth + 1, parent="dict")
         return
@@ -250,5 +252,7 @@ class JSONExtendedEncoder(JSONEncoder):
             return list(o)
 
         # Return the repr for object that json can't encode
-        logging.warning(f"cannot properly encode in JSON the object {type(o)}, returned repr is: {o}")
+        logging.warning(
+            f"cannot properly encode in JSON the object {type(o)}, returned repr is: {o}"
+        )
         return repr(o)
