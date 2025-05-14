@@ -36,9 +36,7 @@ class Server:
         if force:
             server_cache_file.unlink(missing_ok=True)
         if server_cache_file.exists():
-            self.session.cookies["yunohost.admin"] = (
-                server_cache_file.read_text().strip()
-            )
+            self.session.cookies["yunohost.admin"] = server_cache_file.read_text().strip()
             return True
 
         data = {
@@ -59,9 +57,7 @@ class Server:
     async def assert_version(self) -> bool:
         version = (await self.get("/versions")).json()["yunohost"]["version"]
         if Version(version) < Version("12.1.0"):
-            logging.error(
-                f"Your server is too old! (server version={version}, required>=12.1)"
-            )
+            logging.error(f"Your server is too old! (server version={version}, required>=12.1)")
             return False
         return True
 

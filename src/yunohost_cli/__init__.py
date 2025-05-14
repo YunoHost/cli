@@ -50,9 +50,7 @@ async def async_main() -> None:
         choices=["json", "plain", "yaml"],
         default="yaml",
     )
-    parser.add_argument(
-        "-k", "--insecure", action="store_true", default=False, help="Insecure https"
-    )
+    parser.add_argument("-k", "--insecure", action="store_true", default=False, help="Insecure https")
 
     mainsub = parser.add_subparsers(dest="category", required=True)
     actions = ActionsMap()

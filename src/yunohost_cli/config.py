@@ -18,9 +18,7 @@ class Config(metaclass=Singleton):
         self._init()
         self._read()
 
-    def server_add(
-        self, name: str, hostname: str, username: str, password: str
-    ) -> None:
+    def server_add(self, name: str, hostname: str, username: str, password: str) -> None:
         if "servers" not in self.config:
             self.config["servers"] = {}
 

@@ -40,9 +40,7 @@ class MapActionArg:
         if len(self.args) == 2:
             self.varname = self.args[1].removeprefix("--").replace("-", "_")
         else:
-            self.varname = (
-                self.args[0].removeprefix("-").removeprefix("-").replace("-", "_")
-            )
+            self.varname = self.args[0].removeprefix("-").removeprefix("-").replace("-", "_")
 
     def fill_parser(self, subparser: argparse.ArgumentParser) -> None:
         kwargs = {}
@@ -70,10 +68,7 @@ class MapAction:
         self.help = config.get("action_help")
         self.no_help = config.get("hide_in_help", False)
         self.config = config
-        self.args = [
-            MapActionArg(name, config)
-            for name, config in config.get("arguments", {}).items()
-        ]
+        self.args = [MapActionArg(name, config) for name, config in config.get("arguments", {}).items()]
 
     def fill_parser(self, subparser: _SubparserType) -> None:
         if self.config.get("deprecated", False):
@@ -134,22 +129,14 @@ class MapAction:
 class MapCategory:
     def __init__(self, path: list[str], config: dict[str, Any]) -> None:
         self.path = path
-        self.help: str = (
-            config.get("category_help") or config.get("subcategory_help") or ""
-        )
+        self.help: str = config.get("category_help") or config.get("subcategory_help") or ""
         self.subcategories = {
-            name: MapCategory([*path, name], config)
-            for name, config in config.get("subcategories", {}).items()
+            name: MapCategory([*path, name], config) for name, config in config.get("subcategories", {}).items()
         }
-        self.actions = {
-            name: MapAction([*path, name], config)
-            for name, config in config.get("actions", {}).items()
-        }
+        self.actions = {name: MapAction([*path, name], config) for name, config in config.get("actions", {}).items()}
 
     def fill_parser(self, subparser: _SubparserType) -> None:
-        self.parser: argparse.ArgumentParser = subparser.add_parser(
-            self.path[-1], help=self.help
-        )
+        self.parser: argparse.ArgumentParser = subparser.add_parser(self.path[-1], help=self.help)
         subparsers = self.parser.add_subparsers(required=True)
         for action in self.actions.values():
             action.fill_parser(subparsers)
@@ -162,19 +149,14 @@ class ActionsMap:
         self.cached_read()
 
         self.categories = {
-            name: MapCategory([name], config)
-            for name, config in self.map.items()
-            if not name.startswith("_")
+            name: MapCategory([name], config) for name, config in self.map.items() if not name.startswith("_")
         }
 
     def cached_read(self) -> None:
         actionsmap = find_actionsmap()
         map_cache = Path(platformdirs.user_cache_dir("yunohost")) / "actionsmap.json"
 
-        if (
-            map_cache.exists()
-            and map_cache.stat().st_mtime > actionsmap.stat().st_mtime
-        ):
+        if map_cache.exists() and map_cache.stat().st_mtime > actionsmap.stat().st_mtime:
             self.map = json.load(map_cache.open("r"))
         else:
             import yaml
