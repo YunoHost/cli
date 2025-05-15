@@ -46,3 +46,6 @@ strict = true
 
 [tool.ruff]
 line-length = 120
+
+[tool.pyright]
+reportArgumentType = false
