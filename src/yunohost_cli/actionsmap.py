@@ -132,7 +132,7 @@ class MapCategory:
 
     def fill_parser(self, subparser: _SubparserType) -> None:
         self.parser: argparse.ArgumentParser = subparser.add_parser(self.path[-1], help=self.help)
-        subparsers = self.parser.add_subparsers(required=True)
+        subparsers = self.parser.add_subparsers(dest="action", required=True)
         for action in self.actions.values():
             action.fill_parser(subparsers)
         for subcat in self.subcategories.values():
