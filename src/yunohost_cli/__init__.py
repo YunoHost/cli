@@ -8,6 +8,7 @@ import sys
 from .actionsmap import ActionsMap
 from .config import Config
 from .server import Server
+from .cli import print_result
 
 
 def set_logging_level_from_int(value: int) -> None:
@@ -103,30 +104,7 @@ async def async_main() -> None:
     except asyncio.CancelledError:
         pass
 
-    if result.is_error:
-        print(result, result.text)
-        result.raise_for_status()
-
-    # Format and print result
-    if args.output_as == "json":
-        import json
-
-        from .cli import JSONExtendedEncoder
-
-        print(json.dumps(result.json(), cls=JSONExtendedEncoder, ensure_ascii=False))
-
-    elif args.output_as == "plain":
-        from .cli import print_data_plain
-
-        print_data_plain(result.json())
-
-    elif args.output_as == "yaml":
-        from .cli import print_data_simpleyaml
-
-        if isinstance(data := result.json(), dict):
-            print_data_simpleyaml(result.json())
-        else:
-            print(data)
+    print_result(result, args.output_as)
 
 
 def main() -> None:

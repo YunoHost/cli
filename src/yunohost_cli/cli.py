@@ -5,6 +5,7 @@ import logging
 import os
 from json.encoder import JSONEncoder
 from typing import Any
+from httpx import Response
 
 from colored import Fore, Style
 
@@ -273,3 +274,28 @@ class JSONExtendedEncoder(JSONEncoder):
         # Return the repr for object that json can't encode
         logging.warning(f"cannot properly encode in JSON the object {type(o)}, returned repr is: {{o}}")
         return repr(o)
+
+
+def print_result(result: Response, mode: str) -> None:
+    if result.is_error:
+        print(result, result.text)
+        result.raise_for_status()
+
+    data = result.json()
+
+    # Format and print result
+    if data is None:
+        return
+
+    if mode == "json":
+        import json
+        print(json.dumps(data, cls=JSONExtendedEncoder, ensure_ascii=False))
+
+    elif mode == "plain":
+        print_data_plain(data)
+
+    elif mode == "yaml":
+        if isinstance(data, dict):
+            print_data_simpleyaml(data)
+        else:
+            print(data)
