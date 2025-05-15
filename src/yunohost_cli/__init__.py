@@ -94,9 +94,15 @@ async def async_main() -> None:
     if args.category == "sse":
         return await sse_task
 
-    method, uri, params = args.func(args)
-    request = server.request(method, uri, params=params)
-    result = await request
+    # Run request, or, if any, a custom implementation
+    if (args.category, args.action) == ("app", "install"):
+        from .interactive import app_install
+
+        result = await app_install(server, args)
+    else:
+        method, uri, params = args.func(args)
+        request = server.request(method, uri, params=params)
+        result = await request
 
     # Stop SSE
     try:
