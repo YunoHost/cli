@@ -65,7 +65,7 @@ def show_sse_log(kind: str, data: dict[str, Any]) -> None:
     logging.error(f"Unknown SSE log kind {kind}")
 
 
-def prompt(
+async def prompt(
     message: str,
     color: str = "blue",
     prefill: str = "",
@@ -104,7 +104,8 @@ def prompt(
         ("class:", ": "),
     ]
 
-    value = prompt_toolkit.prompt(
+    session = prompt_toolkit.PromptSession()
+    value = await session.prompt_async(
         colored_message,
         bottom_toolbar=help_bottom_toolbar if helptext else None,
         style=style,
@@ -276,7 +277,10 @@ class JSONExtendedEncoder(JSONEncoder):
         return repr(o)
 
 
-def print_result(result: Response, mode: str) -> None:
+def print_result(result: Response | None, mode: str) -> None:
+    if result is None:
+        return
+
     if result.is_error:
         print(result, result.text)
         result.raise_for_status()
