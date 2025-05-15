@@ -293,6 +293,7 @@ def print_result(result: Response | None, mode: str) -> None:
 
     if mode == "json":
         import json
+
         print(json.dumps(data, cls=JSONExtendedEncoder, ensure_ascii=False))
 
     elif mode == "plain":
