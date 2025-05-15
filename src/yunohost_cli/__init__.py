@@ -88,16 +88,17 @@ async def async_main() -> None:
     if not await server.assert_version():
         return
 
+    # Start SSE
+    sse_task = asyncio.create_task(server.sse_logs())
+
     if args.category == "sse":
-        await server.sse_logs()
-        return
+        return await sse_task
 
     method, uri, params = args.func(args)
-
-    # Start SSE
     request = server.request(method, uri, params=params)
-    sse_task = asyncio.create_task(server.sse_logs())
     result = await request
+
+    # Stop SSE
     try:
         sse_task.cancel()
         await sse_task
