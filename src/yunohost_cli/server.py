@@ -35,6 +35,7 @@ class Server:
         server_cache_file = Config().cache_dir / self.name
         if force:
             server_cache_file.unlink(missing_ok=True)
+            del self.session.cookies["yunohost.admin"]
         if server_cache_file.exists():
             self.session.cookies["yunohost.admin"] = server_cache_file.read_text().strip()
             return True
@@ -68,14 +69,19 @@ class Server:
         api_path = "/yunohost/api/"
         return "https://" + f"{base}{api_path}{url}".replace("//", "/")
 
-    async def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
-        return await self.session.request(method, self.real_url(url), **kwargs)
+    async def request(self, method: str, url: str, retry_auth: bool = True, **kwargs: Any) -> httpx.Response:
+        result = await self.session.request(method, self.real_url(url), **kwargs)
+        if result.status_code == httpx.codes.UNAUTHORIZED and retry_auth:
+            logging.warning("Authentification seems expired, trying to log in again...")
+            await self.login(force=True)
+            result = await self.session.request(method, self.real_url(url), **kwargs)
+        return result
 
     async def get(self, url: str, **kwargs: Any) -> httpx.Response:
-        return await self.session.get(self.real_url(url), **kwargs)
+        return await self.request("GET", url, **kwargs)
 
     async def post(self, url: str, **kwargs: Any) -> httpx.Response:
-        return await self.session.post(self.real_url(url), **kwargs)
+        return await self.request("POST", url, **kwargs)
 
     async def sse_logs(self) -> None:
         sse_uri = self.real_url("/sse")
