@@ -36,15 +36,6 @@ wheels = [
 ]
 
 [[package]]
-name = "colored"
-version = "2.3.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b0/01/04aa2e928233863ddf91b35d8f9c0ae40714394afac01fa76ba4eb2f0182/colored-2.3.0.tar.gz", hash = "sha256:4daf9b3ed687a01d59005e1bd03f354475226b933abb9a01836d6dde926d4c6f", size = 14708, upload-time = "2025-02-10T16:42:42.293Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/71/52/990d8b2a888be9fe1022eb89884849547e6341a8bec0072605fd70483db8/colored-2.3.0-py3-none-any.whl", hash = "sha256:2f7f455dc2ed490531b0b8e0ecf8f8513bb28a150d9f12f0e48b023641a55185", size = 18333, upload-time = "2025-02-10T16:42:39.269Z" },
-]
-
-[[package]]
 name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -409,7 +400,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "asyncio" },
-    { name = "colored" },
     { name = "httpx" },
     { name = "httpx-sse" },
     { name = "packaging" },
@@ -432,7 +422,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "asyncio", specifier = ">=3.4.3" },
-    { name = "colored", specifier = ">=2.3.0" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "httpx-sse", specifier = ">=0.4.0" },
     { name = "packaging", specifier = ">=25.0" },
