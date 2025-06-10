@@ -5,64 +5,82 @@ import logging
 import os
 from json.encoder import JSONEncoder
 from typing import Any
-from httpx import Response
 
-from colored import Fore, Style
+from httpx import Response
+from rich._log_render import LogRender
+from rich.console import Console
+from rich.style import Style
+from rich.table import Table
+from rich.text import Text
+
+from .server import SSEEvent
+
+CONSOLE = Console()
+
+LOGGER = LogRender(
+    show_time=True,
+    show_level=True,
+    show_path=False,
+)
 
 
 def level_str(level: str) -> str:
     """Display a message"""
-    length = len(Fore.green) + len(Style.reset) + 10
-    if level == "success":
-        return f"{Fore.green}[{level}]{Style.reset}".ljust(length)
-    if level == "info":
-        return f"{Fore.blue}[{level}]{Style.reset}".ljust(length)
-    elif level == "warning":
-        return f"{Fore.yellow}[{level}]{Style.reset}".ljust(length)
-    elif level == "error":
-        return f"{Fore.red}[{level}]{Style.reset}".ljust(length)
-    return ""
+    styles = {
+        "success": Style(color="green"),
+        "info": Style(color="blue"),
+        "warning": Style(color="yellow"),
+        "error": Style(color="red", bold=True),
+    }
+    style = styles[level]
+    text = Text.styled(f"[{level}]".ljust(10), style)
+    return text
 
 
 def pretty_date(date: float) -> str:
     timestamp = datetime.datetime.utcfromtimestamp(date)
-    return timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    return Text.styled(timestamp.strftime("[%Y-%m-%d %H:%M:%S]"), "log.time")
 
 
-def show_sse_log(kind: str, data: dict[str, Any]) -> None:
-    logging.debug(f"{kind=}, {data=}")
+OPERATIONS: dict[str, tuple[float, str, str]] = {}
 
-    if kind in ["recent_history", "heartbeat"]:
+
+def show_sse_log(event: SSEEvent) -> None:
+    if logging.DEBUG >= logging.getLogger().getEffectiveLevel():
+        CONSOLE.log(event.__dict__)
+
+    if event.type in [event.Type.recent_history, event.Type.heartbeat]:
         return
 
-    if kind in ["start"]:
-        date = float(data.get("timestamp", 0))
-        title = data["title"]
-        author = data["started_by"]
-        print(f"[{pretty_date(date)}] {title}... (Started by {author})")
+    dateprint = pretty_date(event.timestamp)
+
+    if event.type in [event.Type.start]:
+        OPERATIONS[event.operation] = event
+        CONSOLE.print(dateprint, level_str("info"), f"{event.title}... (Started by {event.started_by})")
         return
 
-    if kind in ["end"]:
-        # print(data)
-        success = data["success"]
-        date = float(data.get("timestamp", 0))
+    if event.type in [event.Type.end]:
+        start_event = OPERATIONS.pop(event.operation, None)
 
-        if success:
-            author = data["started_by"]
-            print(f"{level_str('success')}Operation finished (Started by {author})")
+        verb = "finished" if event.success else "failed"
+
+        if start_event:
+            msg = f"Operation '{start_event.title}' started by {start_event.started_by} {verb}!"
         else:
-            errormsg = data["errormsg"]
-            print(f"{level_str('error')}Operation failed!")
-            print(f"{level_str('error')}{errormsg}")
+            msg = f"Operation '{event.operation}' {verb} (sorry, no more info available)!"
+
+        levelprint = level_str("success" if event.success else "error")
+
+        CONSOLE.print(dateprint, levelprint, msg)
+        if not event.success:
+            CONSOLE.print(dateprint, levelprint, event.errormsg)
         return
 
-    if kind in ["msg"]:
-        level: str = data["level"]
-        msg: str = data["msg"]
-        print(f"{level_str(level)}{msg}")
+    if event.type in [event.Type.msg]:
+        CONSOLE.print(dateprint, level_str(event.level), event.msg)
         return
 
-    logging.error(f"Unknown SSE log kind {kind}")
+    logging.error(f"Unknown SSE log kind {event.type}")
 
 
 async def prompt(
@@ -229,7 +247,9 @@ def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
         if parent == "list":
             print(" ", end="")
         for key, value in sorted(data.items()):
-            print(f"{'  ' * _depth}{Fore.magenta}{repr_simple(key)}{Style.reset}:", end="")
+            print("  " * _depth, end="")
+            CONSOLE.print(Text.styled(repr_simple(key), Style(color="magenta")), end="")
+            print(":", end="")
             _depth = depth
             print_data_simpleyaml(value, depth + 1, parent="dict")
         return
