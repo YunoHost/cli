@@ -6,9 +6,9 @@ import logging
 import sys
 
 from .actionsmap import ActionsMap
+from .cli import print_result, show_sse_log
 from .config import Config
 from .server import Server
-from .cli import print_result
 
 
 def set_logging_level_from_int(value: int) -> None:
@@ -87,6 +87,8 @@ async def async_main() -> None:
 
     if not await server.assert_version():
         return
+
+    server.set_sse_log_handler(show_sse_log)
 
     # Start SSE
     sse_task = asyncio.create_task(server.sse_logs())
