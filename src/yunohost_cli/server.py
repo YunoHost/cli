@@ -3,19 +3,66 @@
 import json
 import logging
 import ssl
-from typing import Any
+from enum import Enum
+from typing import Any, Callable
 
 import httpx
 from httpx_sse import aconnect_sse
 from packaging.version import Version
 
-from .cli import show_sse_log
 from .config import Config
+
+
+class SSEEvent:
+    class Type(Enum):
+        recent_history = 1
+        heartbeat = 2
+        msg = 10
+        toast = 11
+        start = 20
+        end = 21
+
+    def __init__(self, type: str, data: dict[str, Any]):
+        self.type = SSEEvent.Type[type]
+        self.timestamp = data.get("timestamp", data.get("started_at"))
+        self.operation = data.get("operation_id", data.get("current_operation", None))
+        self.level: str | None = None
+        self.msg: str = ""
+        self.title: str = ""
+        self.started_by: str | None = None
+        self.success: bool | None = None
+        self.cmdline: str | None = None
+
+        if self.type in [self.Type.msg, self.Type.toast]:
+            self.as_msg(data)
+        if self.type == self.Type.start:
+            self.as_start(data)
+        if self.type == self.Type.end:
+            self.as_end(data)
+        if self.type == self.Type.recent_history:
+            self.as_end(data)
+        if self.type == self.Type.heartbeat:
+            self.as_heartbeat(data)
+
+    def as_msg(self, data: dict[str, Any]) -> None:
+        self.level = data["level"]
+        self.msg = data["msg"]
+
+    def as_start(self, data: dict[str, Any]) -> None:
+        self.title = data["title"]
+        self.started_by = data["started_by"]
+
+    def as_end(self, data: dict[str, Any]) -> None:
+        self.success = data["success"]
+
+    def as_heartbeat(self, data: dict[str, Any]) -> None:
+        self.cmdline = data["cmdline"]
 
 
 class Server:
     def __init__(self, name: str, secure: bool) -> None:
         self.name = name
+        self.sse_handler: Callable[[SSEEvent], None] | None = None
 
         ssl_ctx = ssl.create_default_context()
         timeout = httpx.Timeout(
@@ -83,17 +130,23 @@ class Server:
     async def post(self, url: str, **kwargs: Any) -> httpx.Response:
         return await self.request("POST", url, **kwargs)
 
+    def set_sse_log_handler(self, handler: Callable[[SSEEvent], None]) -> None:
+        self.sse_handler = handler
+
     async def sse_logs(self) -> None:
         sse_uri = self.real_url("/sse")
 
         try:
             async with aconnect_sse(self.session, "GET", sse_uri) as event_source:
                 async for sse in event_source.aiter_sse():
+                    if not self.sse_handler:
+                        continue
                     if not sse.data:
                         continue
                     data = json.loads(sse.data)
                     try:
-                        show_sse_log(sse.event, data)
+                        if self.sse_handler:
+                            self.sse_handler(SSEEvent(sse.event, data))
                     except Exception as err:
                         print(f"Error while parsing the sse logs: {err}")
         except Exception as err:
