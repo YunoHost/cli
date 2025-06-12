@@ -49,7 +49,7 @@ async def async_main() -> None:
         type=str,
         help="Output format",
         choices=["json", "plain", "yaml"],
-        default="yaml",
+        default="plain",
     )
     parser.add_argument("-k", "--insecure", action="store_true", default=False, help="Insecure https")
 
