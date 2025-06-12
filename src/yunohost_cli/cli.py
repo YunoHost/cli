@@ -291,7 +291,13 @@ def print_result(result: Response | None, mode: str) -> None:
     if data is None:
         return
 
-    if mode == "json":
+    if mode == "human":
+        if isinstance(data, dict):
+            print_data_simpleyaml(data)
+        else:
+            print(data)
+
+    elif mode == "json":
         import json
 
         print(json.dumps(data, cls=JSONExtendedEncoder, ensure_ascii=False))

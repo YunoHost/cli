@@ -48,8 +48,8 @@ async def async_main() -> None:
         "--output-as",
         type=str,
         help="Output format",
-        choices=["json", "plain", "yaml"],
-        default="plain",
+        choices=["human", "json", "plain", "yaml"],
+        default="human",
     )
     parser.add_argument("-k", "--insecure", action="store_true", default=False, help="Insecure https")
 
