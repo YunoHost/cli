@@ -302,24 +302,18 @@ class JSONExtendedEncoder(JSONEncoder):
         return repr(o)
 
 
-def repr_simple_smarter(data: Any) -> str:
-    if isinstance(data, list):
-        return "\n".join(data)
-    return repr_simple(data)
-
-
 def print_smart_table(result: dict) -> None:
     values = next(iter(result.values()))
     table = Table(show_header=True, header_style="bold green")
 
     if isinstance(values, dict):
         table.add_column("id")
-        columns = next(iter(values.values()))
+        columns = list(next(iter(values.values())))
         for column in columns:
             table.add_column(column)
 
         for id, row in values.items():
-            row_data = [id] + [repr_simple_smarter(val) for val in row.values()]
+            row_data = [id] + [str(row.get(column, "")) for column in columns]
             table.add_row(*row_data)
 
     elif isinstance(values, list):
@@ -328,7 +322,8 @@ def print_smart_table(result: dict) -> None:
             table.add_column(column)
 
         for row in values:
-            table.add_row(*[repr_simple_smarter(val) for val in row.values()])
+            row_data = [str(row.get(column, "")) for column in columns]
+            table.add_row(*row_data)
 
     CONSOLE.print(table)
 
@@ -346,9 +341,7 @@ def print_smart_table_2d(result: dict) -> None:
 
     for row in rows:
         row_data = [row]
-        print(row)
         for name, valuedict in values.items():
-            print(valuedict)
             value = valuedict.get(row, None)
             if isinstance(value, list):
                 row_data.append("\n".join(sorted(value)))
