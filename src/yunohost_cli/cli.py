@@ -189,6 +189,30 @@ def print_data_plain(data: Any, depth: int = 0) -> None:
         print(data)
 
 
+def repr_simple(data: str | bool | None) -> str:
+    if isinstance(data, str):
+        strepr = data
+        if data == "":
+            strepr = "''"
+        if ":" in data:
+            strepr = f'"{data.replace('"', '\\"')}"'
+        if data.isdigit():
+            strepr = f"'{data}'"
+        if data in ["yes", "no"]:
+            strepr = f"'{data}'"
+
+    elif isinstance(data, bool):
+        strepr = "true" if data else "false"
+
+    elif data is None:
+        strepr = "null"
+
+    else:
+        raise ValueError(f"repr_simple can't take values of type {type(data)}")
+
+    return strepr
+
+
 def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
     """Print in a pretty way a dictionary recursively
 
@@ -201,29 +225,6 @@ def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
     """
 
     _depth = 0
-
-    def repr_simple(data: str | bool | None) -> str:
-        if isinstance(data, str):
-            strepr = data
-            if data == "":
-                strepr = "''"
-            if ":" in data:
-                strepr = f'"{data.replace('"', '\\"')}"'
-            if data.isdigit():
-                strepr = f"'{data}'"
-            if data in ["yes", "no"]:
-                strepr = f"'{data}'"
-
-        elif isinstance(data, bool):
-            strepr = "true" if data else "false"
-
-        elif data is None:
-            strepr = "null"
-
-        else:
-            raise ValueError(f"repr_simple can't take values of type {type(data)}")
-
-        return strepr
 
     if isinstance(data, list):
         if len(data) == 0:
@@ -297,6 +298,29 @@ class JSONExtendedEncoder(JSONEncoder):
         return repr(o)
 
 
+def print_smarttable(result: dict) -> None:
+    values = next(iter(result.values()))
+    table = Table(show_header=True, header_style="bold green")
+
+    if isinstance(values, dict):
+        columns = next(iter(values.values()))
+        for column in columns:
+            table.add_column(column)
+
+        for _, row in values.items():
+            table.add_row(*[repr_simple(val) for val in row.values()])
+
+    elif isinstance(values, list):
+        columns = values[0].keys()
+        for column in columns:
+            table.add_column(column)
+
+        for row in values:
+            table.add_row(*[repr_simple(val) for val in row.values()])
+
+    CONSOLE.print(table)
+
+
 def print_result(result: Response | None, mode: str) -> None:
     if result is None:
         return
@@ -313,7 +337,10 @@ def print_result(result: Response | None, mode: str) -> None:
 
     if mode == "human":
         if isinstance(data, dict):
-            print_data_simpleyaml(data)
+            if next(iter(data.keys())) in ["users", "apps"]:
+                print_smarttable(data)
+            else:
+                print_data_simpleyaml(data)
         else:
             print(data)
 
