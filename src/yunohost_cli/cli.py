@@ -24,7 +24,7 @@ LOGGER = LogRender(
 )
 
 
-def level_str(level: str) -> str:
+def level_str(level: str) -> Text:
     """Display a message"""
     styles = {
         "success": Style(color="green"),
@@ -37,12 +37,12 @@ def level_str(level: str) -> str:
     return text
 
 
-def pretty_date(date: float) -> str:
+def pretty_date(date: int | float) -> Text:
     timestamp = datetime.datetime.utcfromtimestamp(date)
     return Text.styled(timestamp.strftime("[%Y-%m-%d %H:%M:%S]"), "log.time")
 
 
-OPERATIONS: dict[str, tuple[float, str, str]] = {}
+OPERATIONS: dict[str, SSEEvent] = {}
 
 
 def show_sse_log(event: SSEEvent) -> None:
@@ -60,7 +60,7 @@ def show_sse_log(event: SSEEvent) -> None:
         return
 
     if event.type in [event.Type.end]:
-        start_event = OPERATIONS.pop(event.operation, None)
+        start_event: SSEEvent | None = OPERATIONS.pop(event.operation, None)
 
         verb = "finished" if event.success else "failed"
 
