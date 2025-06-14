@@ -54,7 +54,8 @@ class SSEEvent:
 
     def as_end(self, data: dict[str, Any]) -> None:
         self.success = data["success"]
-        self.msg = data["errormsg"]
+        # errormsg is ommited when in recent_history
+        self.msg = data.get("errormsg", "")
 
     def as_heartbeat(self, data: dict[str, Any]) -> None:
         self.cmdline = data["cmdline"]
