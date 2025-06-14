@@ -205,6 +205,9 @@ def repr_simple(data: str | bool | None) -> str:
     elif isinstance(data, bool):
         strepr = "true" if data else "false"
 
+    elif isinstance(data, int):
+        strepr = str(data)
+
     elif data is None:
         strepr = "null"
 
