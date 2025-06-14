@@ -298,17 +298,24 @@ class JSONExtendedEncoder(JSONEncoder):
         return repr(o)
 
 
-def print_smarttable(result: dict) -> None:
+def repr_simple_smarter(data: Any) -> str:
+    if isinstance(data, list):
+        return "\n".join(data)
+    return repr_simple(data)
+
+def print_smart_table(result: dict) -> None:
     values = next(iter(result.values()))
     table = Table(show_header=True, header_style="bold green")
 
     if isinstance(values, dict):
+        table.add_column("id")
         columns = next(iter(values.values()))
         for column in columns:
             table.add_column(column)
 
-        for _, row in values.items():
-            table.add_row(*[repr_simple(val) for val in row.values()])
+        for id, row in values.items():
+            row_data = [id] + [repr_simple_smarter(val) for val in row.values()]
+            table.add_row(*row_data)
 
     elif isinstance(values, list):
         columns = values[0].keys()
@@ -316,7 +323,37 @@ def print_smarttable(result: dict) -> None:
             table.add_column(column)
 
         for row in values:
-            table.add_row(*[repr_simple(val) for val in row.values()])
+            table.add_row(*[repr_simple_smarter(val) for val in row.values()])
+
+    CONSOLE.print(table)
+
+
+def print_smart_table_2d(result: dict) -> None:
+    values = next(iter(result.values()))
+    assert isinstance(values, dict)
+
+    table = Table(show_header=True, header_style="bold green")
+
+    rows = list(next(iter(values.values())).keys())
+    table.add_column("", justify="right", vertical="middle", style="bold green", no_wrap=True)
+    for name in values.keys():
+        table.add_column(name)
+
+    for row in rows:
+        row_data = [row]
+        print(row)
+        for name, valuedict in values.items():
+            print(valuedict)
+            value = valuedict.get(row, None)
+            if isinstance(value, list):
+                row_data.append("\n".join(sorted(value)))
+            elif isinstance(value, str):
+                row_data.append(value)
+            elif value is None:
+                row_data.append("'None'")
+            else:
+                raise RuntimeError(f"Unsupported value type {type(value)}")
+        table.add_row(*row_data)
 
     CONSOLE.print(table)
 
@@ -337,8 +374,10 @@ def print_result(result: Response | None, mode: str) -> None:
 
     if mode == "human":
         if isinstance(data, dict):
-            if next(iter(data.keys())) in ["users", "apps"]:
-                print_smarttable(data)
+            if next(iter(data.keys())) in ["users", "apps", "permissions"]:
+                print_smart_table(data)
+            elif next(iter(data.keys())) in ["groups"]:
+                print_smart_table_2d(data)
             else:
                 print_data_simpleyaml(data)
         else:
