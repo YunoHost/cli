@@ -37,7 +37,7 @@ def level_str(level: str) -> Text:
     return text
 
 
-def pretty_date(date: int | float) -> Text:
+def pretty_date(date: float) -> Text:
     timestamp = datetime.datetime.utcfromtimestamp(date)
     return Text.styled(timestamp.strftime("[%Y-%m-%d %H:%M:%S]"), "log.time")
 
@@ -60,7 +60,7 @@ def show_sse_log(event: SSEEvent) -> None:
         return
 
     if event.type in [event.Type.end]:
-        start_event: SSEEvent | None = OPERATIONS.pop(event.operation, None)
+        start_event: SSEEvent | None = OPERATIONS.pop(event.operation or "", None)
 
         verb = "finished" if event.success else "failed"
 
@@ -73,7 +73,7 @@ def show_sse_log(event: SSEEvent) -> None:
 
         CONSOLE.print(dateprint, levelprint, msg)
         if not event.success:
-            CONSOLE.print(dateprint, levelprint, event.errormsg)
+            CONSOLE.print(dateprint, levelprint, event.msg)
         return
 
     if event.type in [event.Type.msg]:

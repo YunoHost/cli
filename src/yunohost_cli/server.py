@@ -24,8 +24,8 @@ class SSEEvent:
 
     def __init__(self, type: str, data: dict[str, Any]):
         self.type = SSEEvent.Type[type]
-        self.timestamp = data.get("timestamp", data.get("started_at"))
-        self.operation = data.get("operation_id", data.get("current_operation", None))
+        self.timestamp: float = data.get("timestamp", data.get("started_at", 0.0))
+        self.operation: str | None = data.get("operation_id", data.get("current_operation", None))
         self.level: str | None = None
         self.msg: str = ""
         self.title: str = ""
@@ -54,6 +54,7 @@ class SSEEvent:
 
     def as_end(self, data: dict[str, Any]) -> None:
         self.success = data["success"]
+        self.msg = data["errormsg"]
 
     def as_heartbeat(self, data: dict[str, Any]) -> None:
         self.cmdline = data["cmdline"]
