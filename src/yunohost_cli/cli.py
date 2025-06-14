@@ -303,6 +303,7 @@ def repr_simple_smarter(data: Any) -> str:
         return "\n".join(data)
     return repr_simple(data)
 
+
 def print_smart_table(result: dict) -> None:
     values = next(iter(result.values()))
     table = Table(show_header=True, header_style="bold green")
