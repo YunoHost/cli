@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 
+import argparse
+import json
 import logging
 from typing import Any
-import argparse
-from .server import Server
+
 from .cli import prompt
-
-import json
-
-
-async def ask_until_valid()
-
+from .server import Server
 
 async def app_install(server: Server, cli_args: argparse.Namespace) -> None:
     # method, uri, params = cli_args.func(cli_args)
@@ -36,13 +32,9 @@ async def app_install(server: Server, cli_args: argparse.Namespace) -> None:
             pass
 
         value = await prompt(
-            arg["ask"],
-            helptext=arg["help"],
-            completions=arg.get("choices"),
-            visible=not arg["redact"]
+            arg["ask"], helptext=arg["help"], completions=arg.get("choices"), visible=not arg["redact"]
         )
         install_args[arg["id"]] = value
-
 
     print("would run install with:")
     print(json.dumps(install_args, indent=4))
