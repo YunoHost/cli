@@ -375,15 +375,13 @@ def print_result(result: Response | None, mode: str, args: argparse.Namespace) -
             if next(iter(data.keys())) in ["users", "apps", "permissions"]:
                 print_smart_table(data)
             elif args.category == "settings" and args.action == "list":
-                print_smart_table({
-                    "settings": {
-                        id: {
-                            "value": values.get("value", ""),
-                            "ask": values["ask"]
+                print_smart_table(
+                    {
+                        "settings": {
+                            id: {"value": values.get("value", ""), "ask": values["ask"]} for id, values in data.items()
                         }
-                        for id, values in data.items()
                     }
-                })
+                )
             elif next(iter(data.keys())) in ["groups"]:
                 print_smart_table_2d(data)
             else:
