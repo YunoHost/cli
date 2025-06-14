@@ -113,7 +113,7 @@ async def async_main() -> None:
     except asyncio.CancelledError:
         pass
 
-    print_result(result, args.output_as)
+    print_result(result, args.output_as, args)
 
 
 def main() -> None:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import datetime
 import logging
 import os
@@ -359,7 +360,7 @@ def print_smart_table_2d(result: dict) -> None:
     CONSOLE.print(table)
 
 
-def print_result(result: Response | None, mode: str) -> None:
+def print_result(result: Response | None, mode: str, args: argparse.Namespace) -> None:
     if result is None:
         return
 
