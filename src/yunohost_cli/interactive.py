@@ -8,6 +8,7 @@ from typing import Any
 from .cli import prompt
 from .server import Server
 
+
 async def app_install(server: Server, cli_args: argparse.Namespace) -> None:
     # method, uri, params = cli_args.func(cli_args)
     logging.debug(cli_args)
