@@ -8,6 +8,12 @@ from typing import Any
 from .cli import prompt
 from .server import Server
 
+async def ask_until_valid(arg: dict[str, Any]):
+    # Not yet implemented
+    value = await prompt(
+        arg["ask"], helptext=arg["help"], completions=arg.get("choices"), visible=not arg["redact"]
+    )
+    return value
 
 async def app_install(server: Server, cli_args: argparse.Namespace) -> None:
     # method, uri, params = cli_args.func(cli_args)
@@ -29,13 +35,8 @@ async def app_install(server: Server, cli_args: argparse.Namespace) -> None:
     manifest_args: list[dict[str, Any]] = manifest["install"]
 
     for arg in manifest_args:
-        if arg["id"] in install_args:
-            pass
-
-        value = await prompt(
-            arg["ask"], helptext=arg["help"], completions=arg.get("choices"), visible=not arg["redact"]
-        )
-        install_args[arg["id"]] = value
+        if arg["id"] not in install_args:
+            install_args[arg["id"]] = await ask_until_valid(arg)
 
     print("would run install with:")
     print(json.dumps(install_args, indent=4))
