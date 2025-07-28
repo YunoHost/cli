@@ -9,7 +9,7 @@ import toml
 from .utils import Singleton
 
 
-class Config(metaclass=Singleton["Config"]):
+class Config(metaclass=Singleton["Config"]):  # type: ignore  # see https://github.com/python/mypy/issues/11672
     def __init__(self) -> None:
         self.config_dir = Path(platformdirs.user_config_dir("yunohost"))
         self.cache_dir = Path(platformdirs.user_cache_dir("yunohost"))

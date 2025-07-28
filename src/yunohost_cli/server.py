@@ -147,8 +147,7 @@ class Server:
                         continue
                     data = json.loads(sse.data)
                     try:
-                        if self.sse_handler:
-                            self.sse_handler(SSEEvent(sse.event, data))
+                        self.sse_handler(SSEEvent(sse.event, data))
                     except Exception as err:
                         print(f"Error while parsing the sse logs: {err}")
         except Exception as err:

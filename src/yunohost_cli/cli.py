@@ -56,6 +56,7 @@ def show_sse_log(event: SSEEvent) -> None:
     dateprint = pretty_date(event.timestamp)
 
     if event.type in [event.Type.start]:
+        assert event.operation is not None
         OPERATIONS[event.operation] = event
         CONSOLE.print(dateprint, level_str("info"), f"{event.title}... (Started by {event.started_by})")
         return
@@ -78,6 +79,7 @@ def show_sse_log(event: SSEEvent) -> None:
         return
 
     if event.type in [event.Type.msg]:
+        assert event.level is not None
         CONSOLE.print(dateprint, level_str(event.level), event.msg)
         return
 
@@ -123,7 +125,7 @@ async def prompt(
         ("class:", ": "),
     ]
 
-    session = prompt_toolkit.PromptSession()
+    session: prompt_toolkit.PromptSession[str] = prompt_toolkit.PromptSession()
     value = await session.prompt_async(
         colored_message,
         bottom_toolbar=help_bottom_toolbar if helptext else None,
@@ -135,7 +137,7 @@ async def prompt(
     )
 
     if confirm:
-        confirm_value = prompt(
+        confirm_value = await prompt(
             message,
             color=color,
             prefill=prefill,
@@ -302,7 +304,7 @@ class JSONExtendedEncoder(JSONEncoder):
         return repr(o)
 
 
-def print_smart_table(result: dict) -> None:
+def print_smart_table(result: dict[str, Any]) -> None:
     values = next(iter(result.values()))
     table = Table(show_header=True, header_style="bold green")
 
@@ -328,7 +330,7 @@ def print_smart_table(result: dict) -> None:
     CONSOLE.print(table)
 
 
-def print_smart_table_2d(result: dict) -> None:
+def print_smart_table_2d(result: dict[str, Any]) -> None:
     values = next(iter(result.values()))
     assert isinstance(values, dict)
 
