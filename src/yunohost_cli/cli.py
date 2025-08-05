@@ -55,7 +55,9 @@ def show_sse_log(event: SSEEvent, history: bool = False) -> None:
 
     dateprint = pretty_date(event.timestamp)
 
-    if event.type in [event.Type.recent_history] and history:
+    if event.type in [event.Type.recent_history]:
+        if not history:
+            return
         assert event.operation is not None
         levelprint = level_str("success" if event.success else "error")
         msg = f"Operation [repr.str]'{event.title}'[reset]"
