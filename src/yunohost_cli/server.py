@@ -54,6 +54,8 @@ class SSEEvent:
 
     def as_end(self, data: dict[str, Any]) -> None:
         self.success = data["success"]
+        # title is present when in recent_history
+        self.title = data.get("title", "")
         # errormsg is ommited when in recent_history
         self.msg = data.get("errormsg", "")
 
@@ -64,7 +66,7 @@ class SSEEvent:
 class Server:
     def __init__(self, name: str, secure: bool) -> None:
         self.name = name
-        self.sse_handler: Callable[[SSEEvent], None] | None = None
+        self.sse_handler: Callable[[SSEEvent, bool], None] | None = None
 
         ssl_ctx = ssl.create_default_context()
         timeout = httpx.Timeout(
@@ -132,10 +134,10 @@ class Server:
     async def post(self, url: str, **kwargs: Any) -> httpx.Response:
         return await self.request("POST", url, **kwargs)
 
-    def set_sse_log_handler(self, handler: Callable[[SSEEvent], None]) -> None:
+    def set_sse_log_handler(self, handler: Callable[[SSEEvent, bool], None]) -> None:
         self.sse_handler = handler
 
-    async def sse_logs(self) -> None:
+    async def sse_logs(self, history: bool = False) -> None:
         sse_uri = self.real_url("/sse")
 
         try:
@@ -147,7 +149,7 @@ class Server:
                         continue
                     data = json.loads(sse.data)
                     try:
-                        self.sse_handler(SSEEvent(sse.event, data))
+                        self.sse_handler(SSEEvent(sse.event, data), history)
                     except Exception as err:
                         print(f"Error while parsing the sse logs: {err}")
         except Exception as err:

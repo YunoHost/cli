@@ -46,14 +46,21 @@ def pretty_date(date: float) -> Text:
 OPERATIONS: dict[str, SSEEvent] = {}
 
 
-def show_sse_log(event: SSEEvent) -> None:
+def show_sse_log(event: SSEEvent, history: bool = False) -> None:
     if logging.DEBUG >= logging.getLogger().getEffectiveLevel():
         CONSOLE.log(event.__dict__)
 
-    if event.type in [event.Type.recent_history, event.Type.heartbeat]:
+    if event.type in [event.Type.heartbeat]:
         return
 
     dateprint = pretty_date(event.timestamp)
+
+    if event.type in [event.Type.recent_history] and history:
+        assert event.operation is not None
+        levelprint = level_str("success" if event.success else "error")
+        msg = f"Operation [repr.str]'{event.title}'[reset]"
+        CONSOLE.print("Recent history", dateprint, levelprint, msg, f"(started by {event.started_by})")
+        return
 
     if event.type in [event.Type.start]:
         assert event.operation is not None

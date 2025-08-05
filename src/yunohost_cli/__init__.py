@@ -91,7 +91,7 @@ async def async_main() -> None:
     server.set_sse_log_handler(show_sse_log)
 
     # Start SSE
-    sse_task = asyncio.create_task(server.sse_logs())
+    sse_task = asyncio.create_task(server.sse_logs(history=True))
 
     if args.category == "sse":
         return await sse_task
