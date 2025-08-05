@@ -54,8 +54,9 @@ class SSEEvent:
 
     def as_end(self, data: dict[str, Any]) -> None:
         self.success = data["success"]
-        # title is present when in recent_history
+        # title and started_by are present when in recent_history
         self.title = data.get("title", "")
+        self.started_by = data.get("started_by", "")
         # errormsg is ommited when in recent_history
         self.msg = data.get("errormsg", "")
 
