@@ -43,6 +43,10 @@ def pretty_date(date: float) -> Text:
     return Text.styled(timestamp.strftime("[%Y-%m-%d %H:%M:%S]"), "log.time")
 
 
+def safe_quote(string: str) -> str:
+    return f"[repr.str]'{string}'[reset]"
+
+
 OPERATIONS: dict[str, SSEEvent] = {}
 
 
@@ -59,8 +63,8 @@ def show_sse_log(event: SSEEvent, history: bool = False) -> None:
         if not history:
             return
         assert event.operation is not None
-        levelprint = level_str("success" if event.success else "error")
-        msg = f"Operation [repr.str]'{event.title}'[reset]"
+        levelprint = level_str("running" if event.success == "?" else "success" if event.success else "error")
+        msg = f"Operation {safe_quote(event.title)}"
         CONSOLE.print("Recent history", dateprint, levelprint, msg, f"(started by {event.started_by})")
         return
 
@@ -76,9 +80,9 @@ def show_sse_log(event: SSEEvent, history: bool = False) -> None:
         verb = "finished" if event.success else "failed"
 
         if start_event:
-            msg = f"Operation '{start_event.title}' started by {start_event.started_by} {verb}!"
+            msg = f"Operation {safe_quote(start_event.title)} started by {start_event.started_by} {verb}!"
         else:
-            msg = f"Operation '{event.operation}' {verb} (sorry, no more info available)!"
+            msg = f"Operation {safe_quote(event.operation)} {verb} (sorry, no more info available)!"
 
         levelprint = level_str("success" if event.success else "error")
 
@@ -87,7 +91,7 @@ def show_sse_log(event: SSEEvent, history: bool = False) -> None:
             CONSOLE.print(dateprint, levelprint, event.msg)
         return
 
-    if event.type in [event.Type.msg]:
+    if event.type in [event.Type.msg, event.Type.toast]:
         assert event.level is not None
         CONSOLE.print(dateprint, level_str(event.level), event.msg)
         return
