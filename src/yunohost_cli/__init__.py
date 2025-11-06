@@ -41,8 +41,7 @@ async def cli_test(_args: argparse.Namespace, _config: Config, server: Server) -
 
 async def cli_list_servers(_args: argparse.Namespace, _config: Config) -> None:
     servers_pretty = {
-        name: f"{desc["username"]}@{desc["hostname"]}"
-        for name, desc in _config.config["servers"].items()
+        name: f"{desc['username']}@{desc['hostname']}" for name, desc in _config.config["servers"].items()
     }
     print_data_simpleyaml(servers_pretty)
 
@@ -93,7 +92,6 @@ async def async_main() -> None:
         if args.action == "list":
             await cli_list_servers(args, config)
         return
-
 
     await server.login()
 
