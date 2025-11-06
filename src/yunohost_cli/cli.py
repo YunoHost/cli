@@ -39,11 +39,11 @@ def level_str(level: str) -> Text:
 
 
 def pretty_date(date: float) -> Text:
-    timestamp = datetime.datetime.utcfromtimestamp(date)
+    timestamp = datetime.datetime.fromtimestamp(date, tz=datetime.timezone.utc)
     return Text.styled(timestamp.strftime("[%Y-%m-%d %H:%M:%S]"), "log.time")
 
 
-def safe_quote(string: str) -> str:
+def safe_quote(string: str | None) -> str:
     return f"[repr.str]'{string}'[reset]"
 
 
