@@ -6,7 +6,7 @@ import logging
 import sys
 
 from .actionsmap import ActionsMap
-from .cli import print_result, show_sse_log
+from .cli import print_result, print_data_simpleyaml, show_sse_log
 from .config import Config
 from .server import Server
 
@@ -39,6 +39,14 @@ async def cli_test(_args: argparse.Namespace, _config: Config, server: Server) -
         sys.exit(1)
 
 
+async def cli_list_servers(_args: argparse.Namespace, _config: Config) -> None:
+    servers_pretty = {
+        name: f"{desc["username"]}@{desc["hostname"]}"
+        for name, desc in _config.config["servers"].items()
+    }
+    print_data_simpleyaml(servers_pretty)
+
+
 async def async_main() -> None:
     parser = argparse.ArgumentParser("ynh")
     parser.add_argument("-v", "--verbose", action="count", default=0)
@@ -66,6 +74,7 @@ async def async_main() -> None:
     auth.add_argument("login", type=str)
     auth.add_argument("password", type=str)
     clisub.add_parser("test", help="Check authentication")
+    clisub.add_parser("list", help="List servers")
 
     mainsub.add_parser("sse", help="dump logs via SSE")
 
@@ -81,7 +90,10 @@ async def async_main() -> None:
             await cli_auth(args, config, server)
         if args.action == "test":
             await cli_test(args, config, server)
+        if args.action == "list":
+            await cli_list_servers(args, config)
         return
+
 
     await server.login()
 
