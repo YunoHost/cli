@@ -73,7 +73,7 @@ async def async_main() -> None:
     auth.add_argument("login", type=str)
     auth.add_argument("password", type=str)
     clisub.add_parser("test", help="Check authentication")
-    clisub.add_parser("list", help="List servers")
+    clisub.add_parser("list-servers", help="List configured servers")
 
     mainsub.add_parser("sse", help="dump logs via SSE")
 
@@ -89,7 +89,7 @@ async def async_main() -> None:
             await cli_auth(args, config, server)
         if args.action == "test":
             await cli_test(args, config, server)
-        if args.action == "list":
+        if args.action == "list-servers":
             await cli_list_servers(args, config)
         return
 
