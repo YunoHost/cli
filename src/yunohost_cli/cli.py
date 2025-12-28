@@ -376,7 +376,11 @@ def print_result(result: Response | None, mode: str, args: argparse.Namespace) -
         return
 
     if result.is_error:
-        print(result, result.text)
+        try:
+            print(result.json()["error"])
+            print()
+        except Exception:
+            print(result, result.text)
         result.raise_for_status()
 
     data = result.json()
