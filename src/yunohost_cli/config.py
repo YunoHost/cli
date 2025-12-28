@@ -17,6 +17,7 @@ class Config(metaclass=Singleton["Config"]):  # type: ignore  # see https://gith
         self.config: dict[str, Any] = {"version": 1}
         self._init()
         self._read()
+        self.add_localhost()
 
     def server_add(self, name: str, hostname: str, username: str, password: str) -> None:
         if "servers" not in self.config:
@@ -34,6 +35,10 @@ class Config(metaclass=Singleton["Config"]):  # type: ignore  # see https://gith
         if name in self.config["servers"]:
             del self.config["servers"][name]
         self._save()
+
+    def add_localhost(self) -> None:
+        if "localhost" not in self.config.get("servers", {}):
+            self.server_add("localhost", "localhost", "", "")
 
     def _init(self) -> None:
         self.config_dir.mkdir(parents=True, exist_ok=True)

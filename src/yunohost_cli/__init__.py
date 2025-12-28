@@ -49,7 +49,7 @@ async def cli_list_servers(_args: argparse.Namespace, _config: Config) -> None:
 async def async_main() -> None:
     parser = argparse.ArgumentParser("ynh")
     parser.add_argument("-v", "--verbose", action="count", default=0)
-    parser.add_argument("-s", "--server-name", type=str, default="default")
+    parser.add_argument("-s", "--server-name", type=str, default="localhost")
     parser.add_argument(
         "-o",
         "--output-as",
