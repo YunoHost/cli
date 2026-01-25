@@ -42,11 +42,7 @@ async def cli_test(_args: argparse.Namespace, _config: Config, server: Server) -
 async def cli_list_servers(_args: argparse.Namespace, _config: Config) -> None:
     # First remove the passwords from the config...
     servers_safe = {
-        name: {
-            key: value
-            for key, value in info.items()
-            if key != "password"
-        }
+        name: {key: value for key, value in info.items() if key != "password"}
         for name, info in _config.config["servers"].items()
     }
     print_smart_table({"servers": servers_safe})
