@@ -6,7 +6,7 @@ import logging
 import sys
 
 from .actionsmap import ActionsMap
-from .cli import print_result, print_data_simpleyaml, show_sse_log
+from .cli import print_result, print_smart_table, print_data_simpleyaml, show_sse_log
 from .config import Config
 from .server import Server
 
@@ -40,10 +40,16 @@ async def cli_test(_args: argparse.Namespace, _config: Config, server: Server) -
 
 
 async def cli_list_servers(_args: argparse.Namespace, _config: Config) -> None:
-    servers_pretty = {
-        name: f"{desc['username']}@{desc['hostname']}" for name, desc in _config.config["servers"].items()
+    # First remove the passwords from the config...
+    servers_safe = {
+        name: {
+            key: value
+            for key, value in info.items()
+            if key != "password"
+        }
+        for name, info in _config.config["servers"].items()
     }
-    print_data_simpleyaml(servers_pretty)
+    print_smart_table({"servers": servers_safe})
 
 
 async def async_main() -> None:
