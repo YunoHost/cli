@@ -6,7 +6,7 @@ import logging
 import sys
 
 from .actionsmap import ActionsMap
-from .cli import print_result, print_smart_table, print_data_simpleyaml, show_sse_log
+from .cli import print_data_simpleyaml, print_result, print_smart_table, show_sse_log
 from .config import Config
 from .server import Server
 
@@ -48,8 +48,20 @@ async def cli_list_servers(_args: argparse.Namespace, _config: Config) -> None:
     print_smart_table({"servers": servers_safe})
 
 
+async def help_all(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    print(parser.format_help())
+    subparsers_actions = [action for action in parser._actions if isinstance(action, argparse._SubParsersAction)]
+    # there will probably only be one subparser_action,
+    # but better safe than sorry
+    for subparsers_action in subparsers_actions:
+        # get all subparsers and print help
+        for choice, subparser in subparsers_action.choices.items():
+            print(subparser.format_usage().strip())
+
+
 async def async_main() -> None:
     parser = argparse.ArgumentParser("ynh")
+    parser.add_argument("-H", "--help-all", action="store_true", help="Print the whole subcommands helps")
     parser.add_argument("-v", "--verbose", action="count", default=0)
     parser.add_argument("-s", "--server-name", type=str, default="localhost")
     parser.add_argument(
@@ -62,7 +74,7 @@ async def async_main() -> None:
     )
     parser.add_argument("-k", "--insecure", action="store_true", default=False, help="Insecure https")
 
-    mainsub = parser.add_subparsers(dest="category", required=True)
+    mainsub = parser.add_subparsers(dest="category", required=False)
     actions = ActionsMap()
     actions.fill_parser(mainsub)
 
@@ -80,6 +92,14 @@ async def async_main() -> None:
     mainsub.add_parser("sse", help="dump logs via SSE")
 
     args = parser.parse_args()
+
+    if args.help_all:
+        await help_all(parser, args)
+        sys.exit(0)
+
+    if not args.category:
+        parser.print_help()
+        sys.exit(1)
 
     set_logging_level_from_int(args.verbose)
 
