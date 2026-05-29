@@ -136,7 +136,7 @@ async def async_main() -> None:
 
         result = await app_install(server, args)
     else:
-        method, uri, params = args.func(args)
+        method, uri, params = args.http(args)
         request = server.request(method, uri, params=params)
         result = await request
 

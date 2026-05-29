@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
+import importlib
+import importlib.util
 import json
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 import platformdirs
 
@@ -75,9 +77,10 @@ class MapAction:
 
         for arg in self.args:
             arg.fill_parser(parser)
-        parser.set_defaults(func=self.run)
+        parser.set_defaults(http=self.run_http)
+        parser.set_defaults(run=self.run_direct)
 
-    def run(self, args: argparse.Namespace) -> tuple[str, str, dict[str, str]]:
+    def run_http(self, args: argparse.Namespace) -> tuple[str, str, dict[str, str]]:
         logging.debug(f"Running '{' '.join(self.path)}' ({self.help})")
 
         uris = self.config["api"]
@@ -119,6 +122,36 @@ class MapAction:
 
         method, uri = uris.split(" ")
         return method, uri, params
+
+    def run_direct(self, args: argparse.Namespace) -> Callable[[], Any]:
+        modulename = self.path[0]
+        methodname = "_".join(self.path)
+        methodargs = {}
+
+        def handle_arg(arg: MapActionArg) -> None:
+            value = arg.value(args)
+            if value is None or value == []:
+                return
+            methodargs[arg.varname] = value
+
+        for arg in self.args:
+            handle_arg(arg)
+
+        try:
+            if (spec := importlib.util.find_spec(f"yunohost.{modulename}")) is None:
+                raise ModuleNotFoundError
+        except ModuleNotFoundError:
+            raise RuntimeError(f"Could not find module yunohost.{modulename}!") from None
+
+        module = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(module)
+        if (method := getattr(module, methodname)) is None:
+            raise RuntimeError(f"Could not find method yunohost.{methodname}!")
+
+        argsstr = ", ".join(f"{key}={value}" for key, value in methodargs.items())
+        logging.debug(f"Running '{' '.join(self.path)}({argsstr})' ({self.help})")
+        return lambda: method(**methodargs)
 
 
 class MapCategory:
