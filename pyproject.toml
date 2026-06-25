@@ -18,6 +18,14 @@ dependencies = [
     "toml>=0.10",
 ]
 
+[dependency-groups]
+dev = [
+    "mypy",
+    "types-toml>=0.10",
+    "types-pyyaml>=6.0",
+    "ruff>=0.11.9",
+]
+
 [project.scripts]
 yunohost-cli = "yunohost_cli:main"
 ynh = "yunohost_cli:main"
@@ -26,13 +34,6 @@ ynh = "yunohost_cli:main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[dependency-groups]
-dev = [
-    "mypy",
-    "types-toml>=0.10",
-    "types-pyyaml>=6.0",
-    "ruff>=0.11.9",
-]
 
 [tool.mypy]
 follow_imports = "normal"
