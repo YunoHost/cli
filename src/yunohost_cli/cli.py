@@ -54,12 +54,12 @@ def show_sse_log(event: SSEEvent, *, history: bool = False) -> None:
     if logging.getLogger().getEffectiveLevel() <= logging.DEBUG:
         CONSOLE.log(event.__dict__)
 
-    if event.type == event.Type.heartbeat:
+    if event.type is event.Type.heartbeat:
         return
 
     dateprint = pretty_date(event.timestamp)
 
-    if event.type == event.Type.recent_history:
+    if event.type is event.Type.recent_history:
         if not history:
             return
         assert event.operation is not None
@@ -68,13 +68,13 @@ def show_sse_log(event: SSEEvent, *, history: bool = False) -> None:
         CONSOLE.print("Recent history", dateprint, levelprint, msg, f"(started by {event.started_by})")
         return
 
-    if event.type == event.Type.start:
+    if event.type is event.Type.start:
         assert event.operation is not None
         OPERATIONS[event.operation] = event
         CONSOLE.print(dateprint, level_str("info"), f"{event.title}... (Started by {event.started_by})")
         return
 
-    if event.type == event.Type.end:
+    if event.type is event.Type.end:
         start_event: SSEEvent | None = OPERATIONS.pop(event.operation or "", None)
 
         verb = "finished" if event.success else "failed"
