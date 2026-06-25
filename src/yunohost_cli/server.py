@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import ssl
+from collections.abc import Callable
 from enum import Enum
 from typing import Any, Protocol
 
@@ -23,8 +24,8 @@ class SSEEvent:
         start = 20
         end = 21
 
-    def __init__(self, _type: str, data: dict[str, Any]) -> None:
-        self.type = SSEEvent.Type[_type]
+    def __init__(self, type_: str, data: dict[str, Any]) -> None:
+        self.type = SSEEvent.Type[type_]
         self.timestamp: float = data.get("timestamp", data.get("started_at", 0.0))
         self.operation: str | None = data.get("operation_id", data.get("current_operation"))
         self.level: str | None = None
@@ -105,13 +106,14 @@ class Server:
         try:
             logging.info("Logging in...")
             result = await self.post("/login", data=data)
+        except httpx2.RequestError:
+            logging.exception("Trying to log in: ")
+            return False
+        else:
             if result.is_error:
                 return False
             server_cache_file.write_text(result.cookies["yunohost.admin"])
             return True
-        except httpx2.RequestError as err:
-            logging.error(err)
-            return False
 
     async def assert_version(self) -> bool:
         server_cache_file = get_config().cache_dir / f"{self.name}.version"

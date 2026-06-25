@@ -22,9 +22,7 @@ def find_actionsmap() -> Path:
     server_copy = Path("/usr/share/yunohost/actionsmap.yml")
     package_copy = Path(__file__).resolve().parent / "actionsmap.yml"
 
-    if server_copy.exists():
-        return server_copy
-    return package_copy
+    return server_copy if server_copy.exists() else package_copy
 
 
 class MapActionArg:
