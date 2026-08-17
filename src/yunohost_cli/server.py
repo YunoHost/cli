@@ -10,7 +10,7 @@ import httpx
 from httpx_sse import aconnect_sse
 from packaging.version import Version
 
-from .config import Config
+from .config import get_config
 
 
 class SSEEvent:
@@ -83,8 +83,8 @@ class Server:
         )
 
     async def login(self, force: bool = False) -> bool:
-        server_config = Config().config["servers"][self.name]
-        server_cache_file = Config().cache_dir / self.name
+        server_config = get_config().config["servers"][self.name]
+        server_cache_file = get_config().cache_dir / self.name
         if force:
             server_cache_file.unlink(missing_ok=True)
             del self.session.cookies["yunohost.admin"]
@@ -117,7 +117,7 @@ class Server:
         return True
 
     def real_url(self, url: str) -> str:
-        base = Config().config["servers"][self.name]["hostname"]
+        base = get_config().config["servers"][self.name]["hostname"]
         api_path = "/yunohost/api/"
         return "https://" + f"{base}{api_path}{url}".replace("//", "/")
 

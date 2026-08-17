@@ -7,7 +7,7 @@ import sys
 
 from .actionsmap import ActionsMap
 from .cli import print_data_simpleyaml, print_result, print_smart_table, show_sse_log
-from .config import Config
+from .config import Config, get_config
 from .server import Server
 
 
@@ -104,7 +104,7 @@ async def async_main() -> None:
 
     set_logging_level_from_int(args.verbose)
 
-    config = Config()
+    config = get_config()
     server = Server(args.server_name, not args.insecure)
 
     if args.category == "cli":

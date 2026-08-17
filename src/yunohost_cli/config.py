@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 
+import functools
 from pathlib import Path
 from typing import Any
 
 import platformdirs
 import toml
 
-from .utils import Singleton
 
-
-class Config(metaclass=Singleton["Config"]):  # type: ignore  # see https://github.com/python/mypy/issues/11672
+class Config:
     def __init__(self) -> None:
         self.config_dir = Path(platformdirs.user_config_dir("yunohost"))
         self.cache_dir = Path(platformdirs.user_cache_dir("yunohost"))
@@ -51,3 +50,6 @@ class Config(metaclass=Singleton["Config"]):  # type: ignore  # see https://gith
 
     def _save(self) -> None:
         toml.dump(self.config, self.config_path.open("w"))
+
+
+get_config = functools.cache(Config)
