@@ -68,3 +68,6 @@ lint.ignore = [
     "TRY300",   # Consider moving this statement to an `else` block
     "TRY400",   # Use `logging.exception` instead of `logging.error`
 ]
+
+[tool.ty.rules]
+all = "error"
