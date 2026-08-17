@@ -6,7 +6,7 @@ import logging
 import sys
 
 from .actionsmap import ActionsMap
-from .cli import print_data_simpleyaml, print_result, print_smart_table, show_sse_log
+from .cli import print_result, print_smart_table, show_sse_log
 from .config import Config, get_config
 from .server import Server
 
@@ -49,14 +49,14 @@ async def cli_list_servers(_args: argparse.Namespace, _config: Config) -> None:
     print_smart_table({"servers": servers_safe})
 
 
-async def help_all(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+async def help_all(parser: argparse.ArgumentParser, _args: argparse.Namespace) -> None:
     print(parser.format_help())
-    subparsers_actions = [action for action in parser._actions if isinstance(action, argparse._SubParsersAction)]
+    subparsers_actions = [action for action in parser._actions if isinstance(action, argparse._SubParsersAction)]  # noqa: SLF001
     # there will probably only be one subparser_action,
     # but better safe than sorry
     for subparsers_action in subparsers_actions:
         # get all subparsers and print help
-        for choice, subparser in subparsers_action.choices.items():
+        for subparser in subparsers_action.choices.values():
             print(subparser.format_usage().strip())
 
 
@@ -105,7 +105,7 @@ async def async_main() -> None:
     set_logging_level_from_int(args.verbose)
 
     config = get_config()
-    server = Server(args.server_name, not args.insecure)
+    server = Server(args.server_name, secure=not args.insecure)
 
     if args.category == "cli":
         if args.action == "auth":
@@ -128,11 +128,12 @@ async def async_main() -> None:
     sse_task = asyncio.create_task(server.sse_logs(history=only_sse))
 
     if only_sse:
-        return await sse_task
+        await sse_task
+        return
 
     # Run request, or, if any, a custom implementation
     if (args.category, args.action) == ("app", "install"):
-        from .interactive import app_install
+        from .interactive import app_install  # noqa: PLC0415
 
         result = await app_install(server, args)
     else:

@@ -4,10 +4,10 @@ import json
 import logging
 import ssl
 from enum import Enum
-from typing import Any, Callable
+from typing import Any, Protocol
 
 import httpx
-from httpx_sse import aconnect_sse
+from httpx_sse import SSEError, aconnect_sse
 from packaging.version import Version
 
 from .config import get_config
@@ -22,10 +22,10 @@ class SSEEvent:
         start = 20
         end = 21
 
-    def __init__(self, type: str, data: dict[str, Any]):
-        self.type = SSEEvent.Type[type]
+    def __init__(self, _type: str, data: dict[str, Any]) -> None:
+        self.type = SSEEvent.Type[_type]
         self.timestamp: float = data.get("timestamp", data.get("started_at", 0.0))
-        self.operation: str | None = data.get("operation_id", data.get("current_operation", None))
+        self.operation: str | None = data.get("operation_id", data.get("current_operation"))
         self.level: str | None = None
         self.msg: str = ""
         self.title: str = ""
@@ -64,10 +64,14 @@ class SSEEvent:
         self.cmdline = data["cmdline"]
 
 
+class SSELogHandler(Protocol):
+    def __call__(self, event: SSEEvent, *, history: bool = False) -> None: ...
+
+
 class Server:
-    def __init__(self, name: str, secure: bool) -> None:
+    def __init__(self, name: str, *, secure: bool) -> None:
         self.name = name
-        self.sse_handler: Callable[[SSEEvent, bool], None] | None = None
+        self.sse_handler: SSELogHandler | None = None
 
         ssl_ctx = ssl.create_default_context()
         timeout = httpx.Timeout(
@@ -82,7 +86,7 @@ class Server:
             follow_redirects=True,
         )
 
-    async def login(self, force: bool = False) -> bool:
+    async def login(self, *, force: bool = False) -> bool:
         server_config = get_config().config["servers"][self.name]
         server_cache_file = get_config().cache_dir / self.name
         if force:
@@ -121,7 +125,7 @@ class Server:
         api_path = "/yunohost/api/"
         return "https://" + f"{base}{api_path}{url}".replace("//", "/")
 
-    async def request(self, method: str, url: str, retry_auth: bool = True, **kwargs: Any) -> httpx.Response:
+    async def request(self, method: str, url: str, *, retry_auth: bool = True, **kwargs: Any) -> httpx.Response:
         result = await self.session.request(method, self.real_url(url), **kwargs)
         if result.status_code == httpx.codes.UNAUTHORIZED and retry_auth:
             logging.warning("Authentification seems expired, trying to log in again...")
@@ -135,10 +139,10 @@ class Server:
     async def post(self, url: str, **kwargs: Any) -> httpx.Response:
         return await self.request("POST", url, **kwargs)
 
-    def set_sse_log_handler(self, handler: Callable[[SSEEvent, bool], None]) -> None:
+    def set_sse_log_handler(self, handler: SSELogHandler) -> None:
         self.sse_handler = handler
 
-    async def sse_logs(self, history: bool = False) -> None:
+    async def sse_logs(self, *, history: bool = False) -> None:
         sse_uri = self.real_url("/sse")
 
         try:
@@ -150,8 +154,10 @@ class Server:
                         continue
                     data = json.loads(sse.data)
                     try:
-                        self.sse_handler(SSEEvent(sse.event, data), history)
-                    except Exception as err:
+                        self.sse_handler(SSEEvent(sse.event, data), history=history)
+                    except (KeyboardInterrupt, SystemExit):
+                        pass
+                    except Exception as err:  # noqa: BLE001
                         print(f"Error while parsing the sse logs: {err}")
-        except Exception as err:
-            logging.debug(f"SSE failed with {err}")
+        except SSEError as err:
+            logging.error(f"SSE failed: {err}")

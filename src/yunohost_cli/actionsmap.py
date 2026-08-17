@@ -5,8 +5,9 @@ import importlib
 import importlib.util
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import platformdirs
 
@@ -23,8 +24,7 @@ def find_actionsmap() -> Path:
 
     if server_copy.exists():
         return server_copy
-    else:
-        return package_copy
+    return package_copy
 
 
 class MapActionArg:
@@ -83,7 +83,7 @@ class MapAction:
     def run_http(self, args: argparse.Namespace) -> tuple[str, str, dict[str, str]]:
         logging.debug(f"Running '{' '.join(self.path)}' ({self.help})")
 
-        uris = self.config["api"]
+        uris: str | list[str] = self.config["api"]
         params = {}
 
         def handle_arg(arg: MapActionArg) -> None:
@@ -105,7 +105,7 @@ class MapAction:
                 if replacestring in uris[0] and replacestring not in uris[1]:
                     uris = uris[0].replace(replacestring, valuestring)
                     return
-                elif replacestring in uris[1] and replacestring not in uris[0]:
+                if replacestring in uris[1] and replacestring not in uris[0]:
                     uris = uris[1].replace(replacestring, valuestring)
                     return
 
@@ -137,17 +137,14 @@ class MapAction:
         for arg in self.args:
             handle_arg(arg)
 
-        try:
-            if (spec := importlib.util.find_spec(f"yunohost.{modulename}")) is None:
-                raise ModuleNotFoundError
-        except ModuleNotFoundError:
-            raise RuntimeError(f"Could not find module yunohost.{modulename}!") from None
+        if (spec := importlib.util.find_spec(f"yunohost.{modulename}")) is None:
+            raise RuntimeError(f"Could not find module yunohost.{modulename}!")
 
         module = importlib.util.module_from_spec(spec)
         assert spec.loader is not None
         spec.loader.exec_module(module)
         if (method := getattr(module, methodname)) is None:
-            raise RuntimeError(f"Could not find method yunohost.{methodname}!")
+            raise RuntimeError(f"Could not find method yunohost.{modulename}.{methodname}!")
 
         argsstr = ", ".join(f"{key}={value}" for key, value in methodargs.items())
         logging.debug(f"Running '{' '.join(self.path)}({argsstr})' ({self.help})")
@@ -187,7 +184,7 @@ class ActionsMap:
         if map_cache.exists() and map_cache.stat().st_mtime > actionsmap.stat().st_mtime:
             self.map = json.load(map_cache.open("r"))
         else:
-            import yaml
+            import yaml  # noqa: PLC0415
 
             self.map = yaml.safe_load(find_actionsmap().open("r"))
             map_cache.parent.mkdir(parents=True, exist_ok=True)

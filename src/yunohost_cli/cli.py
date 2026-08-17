@@ -5,7 +5,7 @@ import datetime
 import logging
 import os
 from json.encoder import JSONEncoder
-from typing import Any
+from typing import Any, override
 
 from httpx import Response
 from rich._log_render import LogRender
@@ -39,7 +39,7 @@ def level_str(level: str) -> Text:
 
 
 def pretty_date(date: float) -> Text:
-    timestamp = datetime.datetime.fromtimestamp(date, tz=datetime.timezone.utc)
+    timestamp = datetime.datetime.fromtimestamp(date, tz=datetime.UTC)
     return Text.styled(timestamp.strftime("[%Y-%m-%d %H:%M:%S]"), "log.time")
 
 
@@ -50,16 +50,16 @@ def safe_quote(string: str | None) -> str:
 OPERATIONS: dict[str, SSEEvent] = {}
 
 
-def show_sse_log(event: SSEEvent, history: bool = False) -> None:
-    if logging.DEBUG >= logging.getLogger().getEffectiveLevel():
+def show_sse_log(event: SSEEvent, *, history: bool = False) -> None:
+    if logging.getLogger().getEffectiveLevel() <= logging.DEBUG:
         CONSOLE.log(event.__dict__)
 
-    if event.type in [event.Type.heartbeat]:
+    if event.type == event.Type.heartbeat:
         return
 
     dateprint = pretty_date(event.timestamp)
 
-    if event.type in [event.Type.recent_history]:
+    if event.type == event.Type.recent_history:
         if not history:
             return
         assert event.operation is not None
@@ -68,13 +68,13 @@ def show_sse_log(event: SSEEvent, history: bool = False) -> None:
         CONSOLE.print("Recent history", dateprint, levelprint, msg, f"(started by {event.started_by})")
         return
 
-    if event.type in [event.Type.start]:
+    if event.type == event.Type.start:
         assert event.operation is not None
         OPERATIONS[event.operation] = event
         CONSOLE.print(dateprint, level_str("info"), f"{event.title}... (Started by {event.started_by})")
         return
 
-    if event.type in [event.Type.end]:
+    if event.type == event.Type.end:
         start_event: SSEEvent | None = OPERATIONS.pop(event.operation or "", None)
 
         verb = "finished" if event.success else "failed"
@@ -103,6 +103,7 @@ async def prompt(
     message: str,
     color: str = "blue",
     prefill: str = "",
+    *,
     multiline: bool = False,
     helptext: str = "",
     completions: list[str] | None = None,
@@ -116,10 +117,10 @@ async def prompt(
     if not os.isatty(1):
         raise RuntimeError("Not a tty, can't do interactive prompts")
 
-    import prompt_toolkit
-    from prompt_toolkit.completion import WordCompleter
-    from prompt_toolkit.formatted_text import OneStyleAndTextTuple
-    from prompt_toolkit.styles import Style
+    import prompt_toolkit  # noqa: PLC0415
+    from prompt_toolkit.completion import WordCompleter  # noqa: PLC0415
+    from prompt_toolkit.formatted_text import OneStyleAndTextTuple  # noqa: PLC0415
+    from prompt_toolkit.styles import Style  # noqa: PLC0415
 
     completer = WordCompleter(completions or [])
 
@@ -127,7 +128,7 @@ async def prompt(
         {
             "": "",
             "message": f"#ansi{color} bold",
-        }
+        },
     )
 
     def help_bottom_toolbar() -> list[OneStyleAndTextTuple]:
@@ -205,7 +206,7 @@ def print_data_plain(data: Any, depth: int = 0) -> None:
         print(data)
 
 
-def repr_simple(data: str | bool | None) -> str:
+def repr_simple(data: str | bool | None) -> str:  # noqa: FBT001
     if isinstance(data, str):
         strepr = data
         if data == "":
@@ -298,6 +299,7 @@ class JSONExtendedEncoder(JSONEncoder):
 
     """
 
+    @override
     def default(self, o: Any) -> Any:
         """Return a serializable object"""
 
@@ -327,8 +329,8 @@ def print_smart_table(result: dict[str, Any]) -> None:
         for column in columns:
             table.add_column(column)
 
-        for id, row in values.items():
-            row_data = [id] + [str(row.get(column, "")) for column in columns]
+        for _id, row in values.items():
+            row_data = [_id] + [str(row.get(column, "")) for column in columns]
             table.add_row(*row_data)
 
     elif isinstance(values, list):
@@ -351,12 +353,12 @@ def print_smart_table_2d(result: dict[str, Any]) -> None:
 
     rows = list(next(iter(values.values())).keys())
     table.add_column("", justify="right", vertical="middle", style="bold green", no_wrap=True)
-    for name in values.keys():
+    for name in values:
         table.add_column(name)
 
     for row in rows:
         row_data = [row]
-        for name, valuedict in values.items():
+        for valuedict in values.values():
             value = valuedict.get(row, None)
             if isinstance(value, list):
                 row_data.append("\n".join(sorted(value)))
@@ -376,10 +378,11 @@ def print_result(result: Response | None, mode: str, args: argparse.Namespace) -
         return
 
     if result.is_error:
+        import json  # noqa: PLC0415
         try:
             print(result.json()["error"])
             print()
-        except Exception:
+        except json.JSONDecodeError:
             print(result, result.text)
         result.raise_for_status()
 
@@ -397,11 +400,12 @@ def print_result(result: Response | None, mode: str, args: argparse.Namespace) -
                 print_smart_table(
                     {
                         "settings": {
-                            id: {"value": values.get("value", ""), "ask": values["ask"]} for id, values in data.items()
-                        }
-                    }
+                            _id: {"value": values.get("value", ""), "ask": values["ask"]}
+                            for _id, values in data.items()
+                        },
+                    },
                 )
-            elif next(iter(data.keys())) in ["groups"]:
+            elif next(iter(data.keys())) == "groups":
                 print_smart_table_2d(data)
             else:
                 print_data_simpleyaml(data)
@@ -409,7 +413,7 @@ def print_result(result: Response | None, mode: str, args: argparse.Namespace) -
             print(data)
 
     elif mode == "json":
-        import json
+        import json  # noqa: PLC0415
 
         print(json.dumps(data, cls=JSONExtendedEncoder, ensure_ascii=False))
 
