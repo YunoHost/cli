@@ -48,53 +48,23 @@ strict = true
 [tool.ruff]
 line-length = 120
 
-lint.select = [
-    "YTT",      # flake8-2020
-    "ANN",      # flake8-annotations
-    "BLE",      # flake8-blind-except
-    "B",        # flake8-bugbear
-    "A",        # flake8-builtins
-    "C4",       # flake8-comprehensions
-    "DTZ",      # flake8-datetimez
-    "ISC",      # flake8-implicit-str-concat
-    "ICN",      # flake8-import-conventions
-    "LOG",      # flake8-logging
-    "G",        # flake8-logging-format
-    "PIE",      # flake8-pie
-    "Q",        # flake8-quotes
-    "RET",      # flake8-return
-    "SIM",      # flake8-simplify
-    "SLOT",     # flake8-slots
-    "PTH",      # flake8-use-pathlib
-    "FLY",      # flynt
-    "I",        # isort
-    "N",        # pep8-naming
-    "PERF",     # Perflint
-    "E",        # pycodestyle
-    "W",        # pycodestyle
-    "F",        # Pyflakes
-    "PL",       # Pylint
-    "UP",       # pyupgrade
-    "FURB",     # refurb
-    "RUF",      # Ruff-specific rules
-    "TRY",      # tryceratops
-    # "D",
-]
+lint.select = ["ALL"]
 lint.ignore = [
-    "ANN401",   # any-type
-    "COM812",   # missing-trailing-comma
-    "D203",     # incorrect-blank-line-before-class
-    "PLR0911",  # too-many-return-statements
-    "PLR0912",  # too-many-branches
-    "PLR0913",  # too-many-arguments
-    "PLR0915",  # too-many-statements
-    "PLR2004",  # magic-value-comparison
-    "UP009",    # utf8-encoding-declaration
-    "TRY003",   # raise-vanilla-args
-    "D100",     # undocumented-public-module
-    "D104",     # undocumented-public-package
-    "D105",     # undocumented-magic-method
-    "D200",     # unnecessary-multiline-docstring
-    "D212",     # multi-line-summary-first-line
-    "D401",     # non-imperative-mood
+    "C901",     # is too complex
+    "D",        # docstrings
+    "EM101",    # Exception must not use a string literal, assign to variable first
+    "EM102",    # Exception must not use an f-string literal, assign to variable first
+    "ERA001",   # Found commented-out code
+    "EXE001",   # Shebang is present but file is not executable
+    "FIX002",   # Line contains TODO, consider resolving the issue
+    "G004",     # Logging statement uses f-string
+    "LOG015",   # calls on root logger
+    "PLR",      # Code complexity
+    "RET504",   # Unnecessary assignment to `value` before `return` statement
+    "S101",     # Use of `assert` detected
+    "T201",     # `print` found
+    "TD",       # TODO format
+    "TRY003",   # Avoid specifying long messages outside the exception class
+    "TRY300",   # Consider moving this statement to an `else` block
+    "TRY400",   # Use `logging.exception` instead of `logging.error`
 ]
