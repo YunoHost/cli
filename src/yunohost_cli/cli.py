@@ -379,6 +379,7 @@ def print_result(result: Response | None, mode: str, args: argparse.Namespace) -
 
     if result.is_error:
         import json  # noqa: PLC0415
+
         try:
             print(result.json()["error"])
             print()

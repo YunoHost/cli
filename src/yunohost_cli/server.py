@@ -125,19 +125,37 @@ class Server:
         api_path = "/yunohost/api/"
         return "https://" + f"{base}{api_path}{url}".replace("//", "/")
 
-    async def request(self, method: str, url: str, *, retry_auth: bool = True, **kwargs: Any) -> httpx.Response:
-        result = await self.session.request(method, self.real_url(url), **kwargs)
+    async def request(
+        self,
+        method: str,
+        url: str,
+        *,
+        retry_auth: bool = True,
+        data: dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
+    ) -> httpx.Response:
+        result = await self.session.request(method, self.real_url(url), params=params, data=data)
         if result.status_code == httpx.codes.UNAUTHORIZED and retry_auth:
             logging.warning("Authentification seems expired, trying to log in again...")
             await self.login(force=True)
-            result = await self.session.request(method, self.real_url(url), **kwargs)
+            result = await self.session.request(method, self.real_url(url), params=params, data=data)
         return result
 
-    async def get(self, url: str, **kwargs: Any) -> httpx.Response:
-        return await self.request("GET", url, **kwargs)
+    async def get(
+        self,
+        url: str,
+        data: dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
+    ) -> httpx.Response:
+        return await self.request("GET", url, params=params, data=data)
 
-    async def post(self, url: str, **kwargs: Any) -> httpx.Response:
-        return await self.request("POST", url, **kwargs)
+    async def post(
+        self,
+        url: str,
+        data: dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
+    ) -> httpx.Response:
+        return await self.request("POST", url, params=params, data=data)
 
     def set_sse_log_handler(self, handler: SSELogHandler) -> None:
         self.sse_handler = handler
