@@ -137,7 +137,8 @@ async def async_main() -> None:
 
         result = await app_install(server, args)
     else:
-        method, uri, params = args.http(args)
+        request_tuple: tuple[str, str, dict[str, str | int | bool | list[str]]] = args.http(args)
+        method, uri, params = request_tuple
         request = server.request(method, uri, params=params)
         result = await request
 

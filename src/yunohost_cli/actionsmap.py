@@ -57,8 +57,16 @@ class MapActionArg:
             **kwargs,
         )
 
-    def value(self, args: argparse.Namespace) -> Any:
-        return vars(args)[self.varname]
+    def value(self, args: argparse.Namespace) -> str | bool | list[str] | None:
+        value = vars(args)[self.varname]
+        if not (
+            value is None
+            or isinstance(value, (str, bool))
+            or (isinstance(value, list) and all(isinstance(elt, str) for elt in value))
+        ):
+            raise RuntimeError(f"argument '{self.varname}' is not of the right type (str, bool, list of str, or None)")
+
+        return value  # ty: ignore[unsound-return-statement]
 
 
 class MapAction:
@@ -80,11 +88,11 @@ class MapAction:
         parser.set_defaults(http=self.run_http)
         parser.set_defaults(run=self.run_direct)
 
-    def run_http(self, args: argparse.Namespace) -> tuple[str, str, dict[str, str]]:
+    def run_http(self, args: argparse.Namespace) -> tuple[str, str, dict[str, str | int | bool | list[str]]]:
         logging.debug(f"Running '{' '.join(self.path)}' ({self.help})")
 
         uris: str | list[str] = self.config["api"]
-        params = {}
+        params: dict[str, str | int | bool | list[str]] = {}
 
         def handle_arg(arg: MapActionArg) -> None:
             nonlocal uris

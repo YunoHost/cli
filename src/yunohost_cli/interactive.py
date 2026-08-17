@@ -15,7 +15,7 @@ async def ask_until_valid(arg: dict[str, Any]) -> str:
     return value
 
 
-async def app_install(server: Server, cli_args: argparse.Namespace) -> Any:
+async def app_install(server: Server, cli_args: argparse.Namespace) -> None:
     # method, uri, params = cli_args.func(cli_args)
     logging.debug(cli_args)
     app: str = cli_args.app
