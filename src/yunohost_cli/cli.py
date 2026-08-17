@@ -168,7 +168,7 @@ async def prompt(
     return value
 
 
-def print_data_plain(data: Any, depth: int = 0) -> None:
+def print_data_plain(data: object, depth: int = 0) -> None:
     """Print in a plain way a dictionary recursively
 
     Print a dictionary recursively for scripting usage to the standard output.
@@ -206,7 +206,7 @@ def print_data_plain(data: Any, depth: int = 0) -> None:
         print(data)
 
 
-def repr_simple(data: str | bool | None) -> str:  # noqa: FBT001
+def repr_simple(data: object) -> str:
     if isinstance(data, str):
         strepr = data
         if data == "":
@@ -233,7 +233,7 @@ def repr_simple(data: str | bool | None) -> str:  # noqa: FBT001
     return strepr
 
 
-def print_data_simpleyaml(data: Any, depth: int = 0, parent: str = "") -> None:
+def print_data_simpleyaml(data: object, depth: int = 0, parent: str = "") -> None:
     """Print in a pretty way a dictionary recursively
 
     Print a dictionary recursively with colors to the standard output.
