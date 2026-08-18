@@ -85,6 +85,7 @@ class Server:
             timeout=timeout,
             verify=ssl_ctx if secure else False,
             follow_redirects=True,
+            http2=True,
         )
 
     async def login(self, *, force: bool = False) -> bool:
