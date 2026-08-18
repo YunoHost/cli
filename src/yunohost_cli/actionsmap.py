@@ -87,16 +87,16 @@ class MapAction:
             arg.fill_parser(parser)
         parser.set_defaults(map_action=self)
 
-    def run_http(self, args: argparse.Namespace) -> tuple[str, str, dict[str, str | int | bool | list[str]]]:
+    def run_http(self, args: argparse.Namespace) -> tuple[str, str, dict[str, str | list[str]]]:
         logging.debug(f"Running '{' '.join(self.path)}' ({self.help})")
 
         uris: str | list[str] = self.config["api"]
-        params: dict[str, str | int | bool | list[str]] = {}
+        params: dict[str, str | list[str]] = {}
 
         def handle_arg(arg: MapActionArg) -> None:
             nonlocal uris
             value = arg.value(args)
-            if value is None or value == []:
+            if value in (None, []):
                 return
 
             replacestring = f"<{arg.varname}>"
@@ -116,7 +116,10 @@ class MapAction:
                     uris = uris[1].replace(replacestring, valuestring)
                     return
 
-            if isinstance(value, bool) and not value:
+            if value is True:
+                value = "true"
+
+            if value is False:
                 return
 
             params[arg.varname] = value
