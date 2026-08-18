@@ -10,7 +10,7 @@ from packaging.version import Version
 
 from .config import get_config
 
-PrimitiveData = str | int | float | bool | None
+REQUIRED_SERVER_VERSION = Version("12.1.0")
 
 
 class SSEEvent:
@@ -112,13 +112,24 @@ class Server:
             return False
 
     async def assert_version(self) -> bool:
+        server_cache_file = get_config().cache_dir / f"{self.name}.version"
+
+        # Early exit with cache if we know the server has a supported version
+        # to avoid 1 costly request
+        if server_cache_file.exists():
+            server_version = server_cache_file.read_text().strip()
+            logging.debug(f"Cached server version: {server_version}")
+            if Version(server_version) >= REQUIRED_SERVER_VERSION:
+                return True
+
         result = await self.get("/versions")
         result.raise_for_status()
         version = result.json()["yunohost"]["version"]
-        if Version(version) < Version("12.1.0"):
-            logging.error(f"Your server is too old! (server version={version}, required>=12.1)")
-            return False
-        return True
+        server_cache_file.write_text(version)
+        if Version(version) >= REQUIRED_SERVER_VERSION:
+            return True
+        logging.error(f"Your server is too old! (server version={version}, required>=12.1)")
+        return False
 
     def real_url(self, url: str) -> str:
         base = get_config().config["servers"][self.name]["hostname"]
