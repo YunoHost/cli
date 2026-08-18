@@ -7,7 +7,7 @@ import os
 from json.encoder import JSONEncoder
 from typing import Any, override
 
-from httpx import Response
+from httpx2 import Response
 from rich._log_render import LogRender
 from rich.console import Console
 from rich.style import Style

@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
-import json
 import logging
 import ssl
 from enum import Enum
 from typing import Any, Protocol
 
-import httpx
-from httpx_sse import SSEError, aconnect_sse
+import httpx2
 from packaging.version import Version
 
 from .config import get_config
@@ -76,13 +74,13 @@ class Server:
         self.sse_handler: SSELogHandler | None = None
 
         ssl_ctx = ssl.create_default_context()
-        timeout = httpx.Timeout(
+        timeout = httpx2.Timeout(
             10.0,
             connect=10,
             read=1000,
             write=10,
         )
-        self.session = httpx.AsyncClient(
+        self.session = httpx2.AsyncClient(
             timeout=timeout,
             verify=ssl_ctx if secure else False,
             follow_redirects=True,
@@ -109,7 +107,7 @@ class Server:
                 return False
             server_cache_file.write_text(result.cookies["yunohost.admin"])
             return True
-        except httpx.RequestError as err:
+        except httpx2.RequestError as err:
             logging.error(err)
             return False
 
@@ -135,9 +133,9 @@ class Server:
         retry_auth: bool = True,
         data: dict[str, str] | None = None,
         params: dict[str, str | list[str]] | None = None,
-    ) -> httpx.Response:
+    ) -> httpx2.Response:
         result = await self.session.request(method, self.real_url(url), params=params, data=data)
-        if result.status_code == httpx.codes.UNAUTHORIZED and retry_auth:
+        if result.status_code == httpx2.codes.UNAUTHORIZED and retry_auth:
             logging.warning("Authentification seems expired, trying to log in again...")
             await self.login(force=True)
             result = await self.session.request(method, self.real_url(url), params=params, data=data)
@@ -148,7 +146,7 @@ class Server:
         url: str,
         data: dict[str, str] | None = None,
         params: dict[str, str | list[str]] | None = None,
-    ) -> httpx.Response:
+    ) -> httpx2.Response:
         return await self.request("GET", url, params=params, data=data)
 
     async def post(
@@ -156,7 +154,7 @@ class Server:
         url: str,
         data: dict[str, str] | None = None,
         params: dict[str, str | list[str]] | None = None,
-    ) -> httpx.Response:
+    ) -> httpx2.Response:
         return await self.request("POST", url, params=params, data=data)
 
     def set_sse_log_handler(self, handler: SSELogHandler) -> None:
@@ -166,18 +164,19 @@ class Server:
         sse_uri = self.real_url("/sse")
 
         try:
-            async with aconnect_sse(self.session, "GET", sse_uri) as event_source:
-                async for sse in event_source.aiter_sse():
+            async with self.session.sse(sse_uri) as event_source:
+                async for sse in event_source:
                     if not self.sse_handler:
                         continue
                     if not sse.data:
                         continue
-                    data = json.loads(sse.data)
                     try:
+                        data = sse.json()
+                        assert isinstance(data, dict)
                         self.sse_handler(SSEEvent(sse.event, data), history=history)
                     except (KeyboardInterrupt, SystemExit):
                         pass
                     except Exception as err:  # noqa: BLE001
                         print(f"Error while parsing the sse logs: {err}")
-        except SSEError as err:
+        except httpx2.SSEError as err:
             logging.error(f"SSE failed: {err}")
