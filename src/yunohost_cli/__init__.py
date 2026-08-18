@@ -125,7 +125,10 @@ async def async_main() -> None:
 
     # Start SSE
     only_sse = args.category == "sse"
-    sse_task = asyncio.create_task(server.sse_logs(history=only_sse))
+    # Stupid workaround to avoid starting SSE on short requests
+    # This avoids multiple http requests.
+    sse_delay = 0 if only_sse else 1
+    sse_task = asyncio.create_task(server.sse_logs(history=only_sse, delay=sse_delay))
 
     if only_sse:
         await sse_task

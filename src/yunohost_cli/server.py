@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import asyncio
 import logging
 import ssl
 from enum import Enum
@@ -171,8 +172,10 @@ class Server:
     def set_sse_log_handler(self, handler: SSELogHandler) -> None:
         self.sse_handler = handler
 
-    async def sse_logs(self, *, history: bool = False) -> None:
+    async def sse_logs(self, *, history: bool = False, delay: int = 0) -> None:
         sse_uri = self.real_url("/sse")
+
+        await asyncio.sleep(delay)
 
         try:
             async with self.session.sse(sse_uri) as event_source:
