@@ -134,7 +134,7 @@ class Server:
         *,
         retry_auth: bool = True,
         data: dict[str, str] | None = None,
-        params: dict[str, str | int | bool | list[str]] | None = None,
+        params: dict[str, str | list[str]] | None = None,
     ) -> httpx.Response:
         result = await self.session.request(method, self.real_url(url), params=params, data=data)
         if result.status_code == httpx.codes.UNAUTHORIZED and retry_auth:
@@ -147,7 +147,7 @@ class Server:
         self,
         url: str,
         data: dict[str, str] | None = None,
-        params: dict[str, str | int | bool | list[str]] | None = None,
+        params: dict[str, str | list[str]] | None = None,
     ) -> httpx.Response:
         return await self.request("GET", url, params=params, data=data)
 
@@ -155,7 +155,7 @@ class Server:
         self,
         url: str,
         data: dict[str, str] | None = None,
-        params: dict[str, str | int | bool | list[str]] | None = None,
+        params: dict[str, str | list[str]] | None = None,
     ) -> httpx.Response:
         return await self.request("POST", url, params=params, data=data)
 
