@@ -85,8 +85,7 @@ class MapAction:
 
         for arg in self.args:
             arg.fill_parser(parser)
-        parser.set_defaults(http=self.run_http)
-        parser.set_defaults(run=self.run_direct)
+        parser.set_defaults(map_action=self)
 
     def run_http(self, args: argparse.Namespace) -> tuple[str, str, dict[str, str | int | bool | list[str]]]:
         logging.debug(f"Running '{' '.join(self.path)}' ({self.help})")

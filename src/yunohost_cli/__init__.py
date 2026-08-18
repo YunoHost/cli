@@ -5,7 +5,7 @@ import asyncio
 import logging
 import sys
 
-from .actionsmap import ActionsMap
+from .actionsmap import ActionsMap, MapAction
 from .cli import print_result, print_smart_table, show_sse_log
 from .config import Config, get_config
 from .server import Server
@@ -137,8 +137,8 @@ async def async_main() -> None:
 
         result = await app_install(server, args)
     else:
-        request_tuple: tuple[str, str, dict[str, str | int | bool | list[str]]] = args.http(args)
-        method, uri, params = request_tuple
+        map_action: MapAction = args.map_action
+        method, uri, params = map_action.run_http(args)
         request = server.request(method, uri, params=params)
         result = await request
 
