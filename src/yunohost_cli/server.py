@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
+import asyncio
 import json
 import logging
-import ssl
 from enum import Enum
 from typing import Any, Protocol
 
-import httpx
-from httpx_sse import SSEError, aconnect_sse
+import niquests
+import niquests.typing
+import urllib3
 from packaging.version import Version
 
 from .config import get_config
@@ -75,17 +76,14 @@ class Server:
         self.name = name
         self.sse_handler: SSELogHandler | None = None
 
-        ssl_ctx = ssl.create_default_context()
-        timeout = httpx.Timeout(
-            10.0,
+        timeout = urllib3.Timeout(
+            total=10000.0,
             connect=10,
             read=1000,
-            write=10,
         )
-        self.session = httpx.AsyncClient(
+        self.session = niquests.AsyncSession(
             timeout=timeout,
-            verify=ssl_ctx if secure else False,
-            follow_redirects=True,
+            verify=secure,
         )
 
     async def login(self, *, force: bool = False) -> bool:
@@ -93,9 +91,10 @@ class Server:
         server_cache_file = get_config().cache_dir / self.name
         if force:
             server_cache_file.unlink(missing_ok=True)
-            del self.session.cookies["yunohost.admin"]
+            self.session.cookies.clear(name="yunohost.admin")
         if server_cache_file.exists():
-            self.session.cookies["yunohost.admin"] = server_cache_file.read_text().strip()
+            cookie = server_cache_file.read_text().strip()
+            self.session.cookies.set(name="yunohost.admin", value=cookie)
             return True
 
         data = {
@@ -105,11 +104,11 @@ class Server:
         try:
             logging.info("Logging in...")
             result = await self.post("/login", data=data)
-            if result.is_error:
+            if not result.ok:
                 return False
             server_cache_file.write_text(result.cookies["yunohost.admin"])
             return True
-        except httpx.RequestError as err:
+        except niquests.exceptions.RequestException as err:
             logging.error(err)
             return False
 
@@ -129,15 +128,16 @@ class Server:
 
     async def request(
         self,
-        method: str,
+        method: niquests.typing.HttpMethodType,
         url: str,
         *,
         retry_auth: bool = True,
-        data: dict[str, str] | None = None,
-        params: dict[str, str | int | bool | list[str]] | None = None,
-    ) -> httpx.Response:
+        data: niquests.typing.BodyType | None = None,
+        params: niquests.typing.QueryParameterType | None = None,
+    ) -> niquests.Response:
         result = await self.session.request(method, self.real_url(url), params=params, data=data)
-        if result.status_code == httpx.codes.UNAUTHORIZED and retry_auth:
+        # ty: ignore[unresolved-attribute]
+        if result.status_code == niquests.codes.unauthorized and retry_auth:
             logging.warning("Authentification seems expired, trying to log in again...")
             await self.login(force=True)
             result = await self.session.request(method, self.real_url(url), params=params, data=data)
@@ -146,38 +146,47 @@ class Server:
     async def get(
         self,
         url: str,
-        data: dict[str, str] | None = None,
-        params: dict[str, str | int | bool | list[str]] | None = None,
-    ) -> httpx.Response:
+        data: niquests.typing.BodyType | None = None,
+        params: niquests.typing.QueryParameterType | None = None,
+    ) -> niquests.Response:
         return await self.request("GET", url, params=params, data=data)
 
     async def post(
         self,
         url: str,
-        data: dict[str, str] | None = None,
-        params: dict[str, str | int | bool | list[str]] | None = None,
-    ) -> httpx.Response:
+        data: niquests.typing.BodyType | None = None,
+        params: niquests.typing.QueryParameterType | None = None,
+    ) -> niquests.Response:
         return await self.request("POST", url, params=params, data=data)
 
     def set_sse_log_handler(self, handler: SSELogHandler) -> None:
         self.sse_handler = handler
 
     async def sse_logs(self, *, history: bool = False) -> None:
-        sse_uri = self.real_url("/sse")
+        sse_uri = self.real_url("/sse").replace("https", "sse")
 
-        try:
-            async with aconnect_sse(self.session, "GET", sse_uri) as event_source:
-                async for sse in event_source.aiter_sse():
-                    if not self.sse_handler:
-                        continue
-                    if not sse.data:
-                        continue
-                    data = json.loads(sse.data)
-                    try:
-                        self.sse_handler(SSEEvent(sse.event, data), history=history)
-                    except (KeyboardInterrupt, SystemExit):
-                        pass
-                    except Exception as err:  # noqa: BLE001
-                        print(f"Error while parsing the sse logs: {err}")
-        except SSEError as err:
-            logging.error(f"SSE failed: {err}")
+        result = await self.session.get(sse_uri)
+        sse = result.extension
+        assert isinstance(sse, niquests.models.AsyncServerSideEventExtensionFromHTTP)
+
+        while sse.closed is False:
+            event = await sse.next_payload()
+
+            # The remote peer closed the stream.
+            if event is None:
+                continue
+
+            if not event.data:
+                continue
+
+            try:
+                data = json.loads(event.data)
+                if self.sse_handler:
+                    self.sse_handler(SSEEvent(event.event, data), history=history)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except (json.JSONDecodeError, Exception) as err:  # noqa: BLE001
+                print(f"Error while parsing the sse logs: {err}")
+
+
+        print("toto")

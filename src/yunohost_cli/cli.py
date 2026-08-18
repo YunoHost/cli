@@ -7,7 +7,7 @@ import os
 from json.encoder import JSONEncoder
 from typing import Any, override
 
-from httpx import Response
+from niquests import Response
 from rich._log_render import LogRender
 from rich.console import Console
 from rich.style import Style
@@ -377,7 +377,7 @@ def print_result(result: Response | None, mode: str, args: argparse.Namespace) -
     if result is None:
         return
 
-    if result.is_error:
+    if not result.ok:
         import json  # noqa: PLC0415
 
         try:
