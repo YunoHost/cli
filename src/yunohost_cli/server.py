@@ -88,7 +88,7 @@ class Server:
 
     async def login(self, *, force: bool = False) -> bool:
         server_config = get_config().config["servers"][self.name]
-        server_cache_file = get_config().cache_dir / self.name
+        server_cache_file = get_config().cache_dir / f"{self.name}.jwt"
         if force:
             server_cache_file.unlink(missing_ok=True)
             del self.session.cookies["yunohost.admin"]
